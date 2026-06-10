@@ -1,0 +1,16 @@
+# HEAVY / jorasite — Nginx log rotation
+# Installed to: /etc/logrotate.d/jorasite
+# (App logs go to journald, which is size-capped separately.)
+/var/log/nginx/jorasite.*.log {
+    weekly
+    missingok
+    rotate 8
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        [ -f /run/nginx.pid ] && kill -USR1 $(cat /run/nginx.pid) 2>/dev/null || true
+    endscript
+}

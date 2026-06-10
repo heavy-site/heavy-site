@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEAVY — Payment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#000; --fg:#fff; --muted:#8a8a8a; --line:rgba(255,255,255,0.22);
+      --font-display:'Anton','Arial Narrow',Impact,sans-serif;
+      --font:'Saira Condensed','Arial Narrow',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --ease:cubic-bezier(0.22,1,0.36,1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:300;
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
+    .card{width:100%;max-width:520px;border:1px solid var(--line);padding:clamp(28px,6vw,56px);text-align:center;animation:in .5s var(--ease) both}
+    @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+    h1{font-family:var(--font-display);font-size:clamp(2.2rem,8vw,3.4rem);text-transform:uppercase;line-height:.95;margin-bottom:16px}
+    p.msg{font-size:1.1rem;line-height:1.4;color:rgba(255,255,255,.82);margin-bottom:28px}
+    .ref{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;color:var(--muted);margin-bottom:28px;word-break:break-all}
+    a.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.78rem;letter-spacing:.16em;
+      text-transform:uppercase;color:var(--fg);background:none;border:1px solid var(--line);padding:13px 24px;text-decoration:none;
+      transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease)}
+    a.btn:hover{background:var(--fg);color:#000;border-color:var(--fg)}
+    .spinner{width:34px;height:34px;border:2px solid var(--line);border-top-color:var(--fg);border-radius:50%;
+      margin:0 auto 22px;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .ok h1{color:#fff}.bad h1{color:#fff}
+    .mark{font-family:var(--font-mono);font-size:2.6rem;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <p class="eyebrow">HEAVY · Payment</p>
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Checking…</h1>
+    <p class="msg" id="msg">Confirming your payment with the bank.</p>
+    <p class="ref" id="ref"></p>
+    <a class="btn" href="/">← Back to site</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('ref') || params.get('invoiceId');
+    const lang = (navigator.language || 'en').startsWith('uk') ? 'ua' : 'en';
+    const T = {
+      en: { checking:'Checking…', confirming:'Confirming your payment with the bank.',
+            success:'Payment successful', successMsg:'Your payment went through. Your ticket is being issued.',
+            failed:'Payment failed', failedMsg:'The payment was not completed. You have not been charged, or it was reversed.',
+            pending:'Still processing', pendingMsg:'The bank is still processing this payment. You can refresh in a moment.',
+            noref:'No payment reference', norefMsg:'We could not find a payment to check.', back:'← Back to site', refresh:'Refresh' },
+      ua: { checking:'Перевірка…', confirming:'Підтверджуємо вашу оплату в банку.',
+            success:'Оплата успішна', successMsg:'Оплата пройшла. Ваш квиток оформлюється.',
+            failed:'Оплату не виконано', failedMsg:'Оплату не завершено. Кошти не списані або повернені.',
+            pending:'Ще обробляється', pendingMsg:'Банк ще обробляє платіж. Оновіть за мить.',
+            noref:'Немає ідентифікатора', norefMsg:'Не вдалося знайти платіж для перевірки.', back:'← Назад на сайт', refresh:'Оновити' },
+    }[lang];
+
+    const $ = id => document.getElementById(id);
+    if (ref) $('ref').textContent = 'REF ' + ref;
+
+    function render(state) {
+      $('spinner').style.display = (state === 'pending' || state === 'checking') ? 'block' : 'none';
+      const card = $('card');
+      card.classList.remove('ok','bad');
+      if (state === 'success') { card.classList.add('ok'); $('title').innerHTML = '✓<br>' + T.success; $('msg').textContent = T.successMsg; }
+      else if (state === 'failed') { card.classList.add('bad'); $('title').innerHTML = '✕<br>' + T.failed; $('msg').textContent = T.failedMsg; }
+      else if (state === 'pending') { $('title').textContent = T.pending; $('msg').textContent = T.pendingMsg; }
+      else if (state === 'noref') { $('title').textContent = T.noref; $('msg').textContent = T.norefMsg; }
+      else { $('title').textContent = T.checking; $('msg').textContent = T.confirming; }
+    }
+
+    async function check() {
+      if (!ref) { render('noref'); return; }
+      try {
+        const r = await fetch('/api/check-status?ref=' + encodeURIComponent(ref));
+        const d = await r.json();
+        const s = d.status;
+        if (s === 'success') return render('success');
+        if (s === 'failure' || s === 'expired' || s === 'reversed') return render('failed');
+        return 'pending'; // created / processing / hold → keep polling
+      } catch (e) { return 'pending'; }
+    }
+
+    // Poll a handful of times (status may still be 'processing' right after redirect).
+    let tries = 0;
+    render('checking');
+    (async function loop() {
+      const res = await check();
+      if (res === 'pending') {
+        render('pending');
+        if (++tries < 10) { setTimeout(loop, 2500); }
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# HEAVY / jorasite — scoped deploy privileges
+# Installed to: /etc/sudoers.d/jorasite  (mode 0440, validate with visudo -c)
+#
+# The deploy/admin user (jora) may manage ONLY the jorasite app and
+# Nginx without a password. The runtime user (jorasite) gets NO sudo.
+jora ALL=(root) NOPASSWD: /usr/bin/systemctl start jorasite, /usr/bin/systemctl stop jorasite, /usr/bin/systemctl restart jorasite, /usr/bin/systemctl reload jorasite, /usr/bin/systemctl status jorasite, /usr/sbin/nginx -t, /usr/bin/systemctl reload nginx, /usr/bin/systemctl restart nginx
