@@ -1,0 +1,9 @@
+# HEAVY / he4vy.com (cPanel/LiteSpeed) — route extensionless API paths to the
+# PHP proxies, so the frontend can keep calling /api/photos etc. unchanged
+# (those routes are native on the Node/LXC host; here they map to PHP).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^api/photos/?$    /api/photos.php   [L,QSA]
+  RewriteRule ^api/download/?$  /api/download.php [L,QSA]
+  RewriteRule ^api/photo/?$     /api/download.php?inline=1 [L,QSA]
+</IfModule>
