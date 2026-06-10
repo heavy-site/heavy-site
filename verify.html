@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEAVY — Ticket check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#000;--fg:#fff;--muted:#8a8a8a;--line:rgba(255,255,255,0.22);
+      --ok:#1db954;--bad:#e0245e;--warn:#e6a817;
+      --font-display:'Anton',Impact,sans-serif;--font:'Saira Condensed',sans-serif;--font-mono:'Space Mono',monospace;
+      --ease:cubic-bezier(0.22,1,0.36,1);}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--fg);font-family:var(--font);min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{width:100%;max-width:460px;border:1px solid var(--line);padding:clamp(28px,6vw,48px);text-align:center;
+      animation:in .4s var(--ease) both}
+    @keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+    .mark{font-size:3.4rem;line-height:1;margin-bottom:10px}
+    h1{font-family:var(--font-display);font-size:clamp(2rem,8vw,3rem);text-transform:uppercase;line-height:.95;margin-bottom:14px}
+    .meta{font-size:1rem;color:rgba(255,255,255,.82);line-height:1.5;margin-bottom:8px}
+    .sub{font-family:var(--font-mono);font-size:.74rem;color:var(--muted);letter-spacing:.08em;margin-bottom:26px}
+    .ok h1{color:var(--ok)} .bad h1{color:var(--bad)} .warn h1{color:var(--warn)}
+    button{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;
+      width:100%;padding:15px;border:1px solid var(--fg);background:var(--fg);color:#000;cursor:pointer;
+      transition:opacity .2s var(--ease)}
+    button:disabled{opacity:.4;cursor:not-allowed}
+    .spinner{width:32px;height:32px;border:2px solid var(--line);border-top-color:var(--fg);border-radius:50%;
+      margin:0 auto 18px;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <p class="eyebrow">HEAVY · Door check</p>
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Checking…</h1>
+    <p class="meta" id="meta"></p>
+    <p class="sub" id="sub"></p>
+    <button id="action" style="display:none"></button>
+  </div>
+  <script>
+    const token = new URLSearchParams(location.search).get('t') || '';
+    const $ = id => document.getElementById(id);
+    function show(cls, mark, title, meta, sub) {
+      $('spinner').style.display = 'none';
+      $('card').className = 'card ' + (cls || '');
+      $('title').innerHTML = (mark ? '<div class="mark">' + mark + '</div>' : '') + title;
+      $('meta').textContent = meta || '';
+      $('sub').textContent = sub || '';
+    }
+    async function check() {
+      if (!token) return show('bad', '✕', 'No ticket', '', 'Missing token');
+      try {
+        const d = await fetch('/api/verify-ticket?t=' + encodeURIComponent(token)).then(r => r.json());
+        if (!d.valid) return show('bad', '✕', 'Invalid', 'This ticket is not genuine.', 'Signature check failed');
+        const ev = d.event || {};
+        const evLine = [ev.name, ev.date, ev.time, ev.venue].filter(Boolean).join(' · ');
+        if (d.used) {
+          show('warn', '⚠', 'Already used', `${d.name} · ticket ${d.index}/${d.of}`, 'Checked in: ' + new Date(d.usedAt).toLocaleString());
+          return;
+        }
+        // Valid & unused → offer check-in
+        show('ok', '✓', 'Valid', `${d.name} · ticket ${d.index}/${d.of}\n${evLine}`, 'Tap to check in');
+        $('meta').style.whiteSpace = 'pre-line';
+        const btn = $('action');
+        btn.style.display = 'block';
+        btn.textContent = 'Check in';
+        btn.onclick = async () => {
+          btn.disabled = true;
+          const r = await fetch('/api/verify-ticket/use', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ t: token }),
+          }).then(x => x.json());
+          if (r.ok) show('ok', '✓', 'Checked in', `${r.name} · ticket ${r.index}/${r.of}`, 'Welcome — entry granted');
+          else if (r.reason === 'already_used') show('warn', '⚠', 'Already used', '', 'Checked in: ' + new Date(r.usedAt).toLocaleString());
+          else show('bad', '✕', 'Invalid', '', 'Could not check in');
+        };
+      } catch (e) { show('bad', '✕', 'Error', 'Could not verify right now.', String(e)); }
+    }
+    check();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEAVY — Alter Ego</title>
+
+  <!-- ═══════════════════════════════════════════════
+       META PIXEL  (Pixel ID + server-side CAPI)
+  ═══════════════════════════════════════════════════ -->
+  <script>
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window,document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '2185976098902803');
+
+    /* ── Shared tracking helper (Pixel + CAPI, deduped) ─────── */
+    function metaTrack(eventName, customData, userData) {
+      customData = customData || {};
+      const eventId = (crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2));
+      if (typeof fbq !== 'undefined') {
+        fbq('track', eventName, customData, { eventID: eventId });
+      }
+      fetch('/capi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+          event_name: eventName,
+          event_id: eventId,
+          event_source_url: window.location.href,
+          custom_data: customData,
+          user_data: userData || {},
+        }),
+      }).catch(function (err) { console.warn('CAPI send failed:', err); });
+    }
+    metaTrack('PageView');
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=2185976098902803&ev=PageView&noscript=1"/>
+  </noscript>
+  <!-- END META PIXEL -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Brutalist B&W type: Anton (giant display), Saira Condensed (body), Space Mono (labels) -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ══════════════════════════════════════════════════
+       TOKENS  —  pure black & white, brutalist
+    ══════════════════════════════════════════════════ */
+    :root {
+      --bg:        #000;
+      --fg:        #fff;
+      --muted:     #8a8a8a;
+      --line:      rgba(255,255,255,0.22);
+      --line-soft: rgba(255,255,255,0.10);
+
+      --font-display: 'Anton', 'Arial Narrow', Impact, sans-serif;
+      --font:         'Saira Condensed', 'Arial Narrow', sans-serif;
+      --font-mono:    'Space Mono', monospace;
+
+      --nav-h: 58px;
+      --ease:  cubic-bezier(0.22, 1, 0.36, 1);
+
+      /* Tickets card sizing */
+      --card-w: 340px;
+      --card-h: 480px;
+      --radius: 0px;            /* brutalist = hard corners */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection { background: #fff; color: #000; }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ══════════════════════════════════════════════════
+       TOP NAV  (fixed, hairline-bordered, brutalist)
+    ══════════════════════════════════════════════════ */
+    .topnav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 200;
+      display: flex;
+      align-items: stretch;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-right: 1px solid var(--line);
+      user-select: none;
+      /* now a clickable home button */
+      background: none;
+      cursor: pointer;
+      transition: opacity 0.2s var(--ease);
+    }
+    .brand:hover { opacity: 0.7; }
+    .home-logo {
+      height: calc(var(--nav-h) - 22px);
+      width: auto;
+      max-width: 160px;
+      object-fit: contain;
+      display: block;
+    }
+    .brand-text {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    .tabs {
+      display: flex;
+      flex: 1;
+      align-items: stretch;
+    }
+
+    .tab {
+      flex: 1;
+      max-width: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-right: 1px solid var(--line-soft);
+      transition: color 0.25s var(--ease), background 0.25s var(--ease);
+    }
+    .tab:hover { color: var(--fg); }
+    .tab.active {
+      color: #000;
+      background: var(--fg);
+    }
+
+    .lang {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-right: 4px;
+    }
+    .lang button {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.72rem; letter-spacing: 0.15em;
+      color: var(--muted);
+      padding: 0 14px; height: 100%;
+      transition: color 0.2s var(--ease);
+    }
+    .lang button.active { color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
+    .lang button:hover { color: var(--fg); }
+
+    /* ══════════════════════════════════════════════════
+       VIEWS  (tab panels)
+    ══════════════════════════════════════════════════ */
+    .view { display: none; padding-top: var(--nav-h); min-height: 100vh; }
+    .view.active { display: block; animation: viewIn 0.5s var(--ease) both; }
+
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scroll-reveal primitive (IntersectionObserver toggles .in) */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ══════════════════════════════════════════════════
+       TAB 1 — WELCOME
+    ══════════════════════════════════════════════════ */
+    /* Hero + description share ONE continuous background layer */
+    .welcome-stage { position: relative; }
+    /* Continuous blurred video spanning hero + description (no seam).
+       Visually distinct from the Tickets background (more blur, lighter dim). */
+    .welcome-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #050505; }
+    .welcome-bg video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: blur(10px) brightness(0.55) grayscale(1);
+      transform: scale(1.12); /* hide blur edges */
+    }
+    .welcome-bg .bg-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.5));
+    }
+    .hero {
+      height: calc(100vh - var(--nav-h));
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero h1 {
+      position: relative; z-index: 1;
+      font-family: var(--font-display);
+      /* full-bleed oversized word */
+      font-size: clamp(5rem, 38vw, 30rem);
+      line-height: 0.82;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: heroIn 1.1s var(--ease) both;
+    }
+    @keyframes heroIn {
+      from { opacity: 0; letter-spacing: 0.25em; transform: scale(1.06); }
+      to   { opacity: 1; letter-spacing: -0.02em; transform: scale(1); }
+    }
+    .hero .scroll-hint {
+      position: absolute;
+      z-index: 1;
+      bottom: 26px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: bob 2s ease-in-out infinite;
+    }
+    @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+    /* First-scroll description block — sits over the shared background, no seam */
+    .welcome-desc {
+      position: relative; z-index: 1;
+      background: transparent;
+      padding: clamp(80px, 14vh, 180px) clamp(20px, 6vw, 90px);
+    }
+    .welcome-desc p {
+      font-family: var(--font);
+      font-weight: 300;
+      font-size: clamp(1.5rem, 3.4vw, 2.8rem);
+      line-height: 1.3;
+      max-width: 22ch;
+      color: var(--fg);
+    }
+
+    .feed {
+      border-top: 1px solid var(--line);
+    }
+    .video-item {
+      border-bottom: 1px solid var(--line-soft);
+      padding: 64px clamp(20px, 6vw, 90px);
+    }
+    .video-head {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+    .video-index {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .video-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 6vw, 4.5rem);
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+    .video-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0c0c0c;
+      border: 1px solid var(--line);
+    }
+    .video-frame iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
+
+    /* ══════════════════════════════════════════════════
+       TAB 2 — TICKETS  (existing card, brutalist frame)
+    ══════════════════════════════════════════════════ */
+    .tickets-bg {
+      position: absolute;
+      inset: var(--nav-h) 0 0 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #050505;
+    }
+    #bg-video {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: blur(7px) brightness(0.4) grayscale(1);
+      transform: scale(1.08);
+    }
+    .tickets-bg .bg-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.78));
+    }
+
+    .tickets-inner {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - var(--nav-h));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+    }
+    .section-head {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .section-head .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      text-transform: uppercase;
+      line-height: 0.9;
+    }
+
+    .cards-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+    }
+
+    .event-card {
+      position: relative;
+      width: var(--card-w);
+      height: var(--card-h);
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+    }
+    .event-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 0 1px #fff, 12px 12px 0 0 rgba(255,255,255,0.12);
+    }
+    .card-image {
+      position: absolute; inset: 0;
+      background-color: #1a1a1a;
+      background-image:
+        url('event-poster.jpg'),
+        linear-gradient(160deg, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
+      background-size: cover;
+      background-position: center;
+      filter: grayscale(1) contrast(1.05);
+      transition: transform 0.6s var(--ease);
+    }
+    .event-card:hover .card-image { transform: scale(1.06); }
+    .card-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 75%);
+      transition: opacity 0.4s var(--ease);
+    }
+    .event-card:hover .card-gradient { opacity: 0; }
+    .card-info {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 24px;
+      background: linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0) 100%);
+      transform: translateY(calc(100% - 70px));
+      transition: transform 0.45s var(--ease);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .event-card:hover .card-info { transform: translateY(0); }
+    .card-name {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-details {
+      display: flex; flex-direction: column; gap: 9px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.35s 0.1s var(--ease), transform 0.35s 0.1s var(--ease);
+    }
+    .event-card:hover .card-details { opacity: 1; transform: translateY(0); }
+    .detail-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.95rem; color: rgba(255,255,255,0.85);
+    }
+    .detail-row .icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+    .detail-row .label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--fg);
+      display: block; margin-bottom: 1px;
+    }
+    .buy-btn {
+      margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px 20px;
+      background: var(--fg); color: #000;
+      border: none; cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      opacity: 0; transform: translateY(6px);
+      transition: background 0.25s var(--ease), transform 0.35s 0.18s var(--ease), opacity 0.35s 0.18s var(--ease);
+    }
+    .event-card:hover .buy-btn { opacity: 1; transform: translateY(0); }
+    .buy-btn:hover { background: var(--muted); }
+    .buy-btn:active { transform: scale(0.97); }
+    .buy-btn svg { width: 14px; height: 14px; transition: transform 0.2s var(--ease); }
+    .buy-btn:hover svg { transform: translateX(3px); }
+
+    /* ══════════════════════════════════════════════════
+       TAB 3 — PHOTOS
+    ══════════════════════════════════════════════════ */
+    .photos-wrap { padding: 60px clamp(20px, 6vw, 90px) 100px; }
+
+    /* Event preview cards (responsive grid) */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+    .ev-card {
+      position: relative;
+      cursor: pointer;
+      background: #0c0c0c;
+      border: 1px solid var(--line-soft);
+      overflow: hidden;
+      transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+    }
+    .ev-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 0 1px #fff, 12px 12px 0 0 rgba(255,255,255,0.12);
+    }
+    .ev-card .ev-cover {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      background: #161616;
+      filter: grayscale(1) contrast(1.05);
+      transition: transform 0.6s var(--ease), opacity 0.6s var(--ease);
+    }
+    .ev-card:hover .ev-cover { transform: scale(1.05); }
+    .ev-card .ev-meta {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 16px 18px 20px;
+    }
+    .ev-card .ev-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      text-transform: uppercase; line-height: 0.95;
+    }
+    .ev-card .ev-date {
+      font-family: var(--font-mono);
+      font-size: 0.74rem; letter-spacing: 0.16em; color: var(--muted);
+    }
+
+    /* Gallery */
+    .gallery-head {
+      display: flex; align-items: baseline; gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    .back-btn {
+      font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted);
+      background: none; border: 1px solid var(--line); cursor: pointer;
+      padding: 10px 16px;
+      transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .back-btn:hover { color: var(--fg); border-color: var(--fg); }
+    .gallery-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 6vw, 3.6rem); text-transform: uppercase; line-height: 0.95;
+    }
+    .gallery-head .g-date { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.18em; }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px;
+    }
+    .photo-grid img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+      filter: grayscale(1);
+      cursor: pointer;
+      transition: filter 0.4s var(--ease), transform 0.4s var(--ease), opacity 0.6s var(--ease);
+      opacity: 0;
+    }
+    .photo-grid img.loaded { opacity: 1; }
+    .photo-grid img:hover { filter: grayscale(0); transform: scale(1.02); }
+
+    .gallery-status {
+      font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted);
+      letter-spacing: 0.1em; padding: 40px 0;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 40px;
+    }
+    .lightbox.open { display: flex; animation: viewIn 0.3s var(--ease); }
+    .lb-figure {
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      max-width: 92vw;
+    }
+    .lightbox img {
+      max-width: 92vw; max-height: 80vh; object-fit: contain;
+      transition: filter 0.3s var(--ease);
+      touch-action: pan-y; /* allow vertical scroll/zoom; we handle horizontal swipe */
+    }
+    /* Blurred placeholder while the sharp image loads (never a blank state) */
+    .lightbox img.lb-loading { filter: blur(12px); }
+    /* Download button — centered directly below the photo */
+    .lb-download {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--fg);
+      background: none; border: 1px solid var(--line); cursor: pointer;
+      padding: 11px 22px;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .lb-download:hover { background: var(--fg); color: #000; border-color: var(--fg); }
+    .lb-download svg { width: 16px; height: 16px; }
+    .lightbox .lb-close {
+      position: absolute; top: 22px; right: 28px;
+      font-family: var(--font-mono); font-size: 1.4rem; color: #fff;
+      background: none; border: none; cursor: pointer; padding: 8px;
+    }
+    .lightbox .lb-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-family: var(--font-mono); font-size: 2rem; color: #fff;
+      background: none; border: none; cursor: pointer; padding: 16px;
+      opacity: 0.6; transition: opacity 0.2s var(--ease);
+    }
+    .lightbox .lb-nav:hover { opacity: 1; }
+    .lightbox .lb-prev { left: 10px; }
+    .lightbox .lb-next { right: 10px; }
+
+    /* ══════════════════════════════════════════════════
+       CHECKOUT MODAL (event detail view + purchase)
+    ══════════════════════════════════════════════════ */
+    .modal {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(4px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding: max(24px, 6vh) 18px; overflow-y: auto;
+    }
+    .modal.open { display: flex; animation: viewIn 0.3s var(--ease); }
+    .modal-box {
+      position: relative; width: 100%; max-width: 460px;
+      background: #0a0a0a; border: 1px solid var(--line);
+      padding: clamp(26px, 5vw, 44px);
+    }
+    .modal-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-mono); font-size: 1.2rem; color: var(--muted);
+      transition: color 0.2s var(--ease);
+    }
+    .modal-close:hover { color: var(--fg); }
+    .co-name {
+      font-family: var(--font-display); font-size: clamp(2rem, 7vw, 3rem);
+      text-transform: uppercase; line-height: 0.9; margin: 6px 0 18px;
+    }
+    .co-detail { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px;
+      border-bottom: 1px solid var(--line-soft); padding-bottom: 22px; }
+    .co-drow { display: flex; gap: 12px; font-size: 0.95rem; color: rgba(255,255,255,0.85); }
+    .co-drow .k {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); flex: 0 0 64px; padding-top: 3px;
+    }
+    .co-drow .v { flex: 1; line-height: 1.35; }
+    .co-drow .v a { text-decoration: underline; text-underline-offset: 3px; }
+    .co-desc { font-size: 0.95rem; line-height: 1.45; color: rgba(255,255,255,0.7); }
+
+    .co-form { display: flex; flex-direction: column; gap: 12px; }
+    .co-qtyrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .co-flabel, .co-total span:first-child {
+      font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .qty-stepper { display: flex; align-items: stretch; border: 1px solid var(--line); }
+    .qty-stepper button {
+      width: 44px; background: none; border: none; color: var(--fg); cursor: pointer;
+      font-family: var(--font-mono); font-size: 1.2rem; transition: background 0.2s var(--ease), color 0.2s var(--ease);
+    }
+    .qty-stepper button:hover { background: var(--fg); color: #000; }
+    .qty-stepper button:disabled { opacity: 0.3; cursor: not-allowed; background: none; color: var(--fg); }
+    .qty-stepper input {
+      width: 54px; text-align: center; background: none; border: none;
+      border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+      color: var(--fg); font-family: var(--font-mono); font-size: 1rem;
+    }
+    .co-form input[type=email], .co-form input[type=text] {
+      background: #000; border: 1px solid var(--line); color: var(--fg);
+      font-family: var(--font); font-size: 1rem; padding: 13px 14px; width: 100%;
+      transition: border-color 0.2s var(--ease);
+    }
+    .co-form input::placeholder { color: var(--muted); }
+    .co-form input:focus { outline: none; border-color: var(--fg); }
+    .co-form input.invalid { border-color: #c0392b; }
+    .co-total {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin: 8px 0 4px; padding-top: 14px; border-top: 1px solid var(--line-soft);
+    }
+    #co-total-val { font-family: var(--font-display); font-size: 1.6rem; }
+    .co-error { color: #e06; font-family: var(--font-mono); font-size: 0.74rem; margin: 0; }
+    .co-pay {
+      margin-top: 6px; display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 15px; background: var(--fg); color: #000; border: none;
+      font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s var(--ease), opacity 0.2s var(--ease);
+    }
+    .co-pay:hover:not(:disabled) { background: var(--muted); }
+    .co-pay:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ══════════════════════════════════════════════════
+       TAB 4 — BOOKING
+    ══════════════════════════════════════════════════ */
+    .artist-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* always 4 per row */
+      gap: 16px;
+    }
+    .artist-card {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      background: #0c0c0c;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--line-soft);
+    }
+    .artist-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.05);
+      transition: transform 0.6s var(--ease), filter 0.5s var(--ease), opacity 0.6s var(--ease);
+      opacity: 0;
+    }
+    .artist-card img.loaded { opacity: 1; }
+    .artist-card:hover img { transform: scale(1.05); filter: grayscale(1) brightness(0.4); }
+    /* Name hidden until hover */
+    .artist-card .a-name {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; text-align: center;
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      text-transform: uppercase; line-height: 0.95;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+      pointer-events: none;
+    }
+    .artist-card:hover .a-name { opacity: 1; transform: translateY(0); }
+    /* When the photo file is missing, show name permanently on a flat panel */
+    .artist-card.no-photo { background: linear-gradient(160deg, #222 0%, #0c0c0c 100%); }
+    .artist-card.no-photo .a-name { opacity: 1; transform: none; }
+    /* persistent corner index */
+    .artist-card .a-idx {
+      position: absolute; top: 12px; left: 14px;
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
+      mix-blend-mode: difference;
+    }
+
+    /* Artist detail */
+    .artist-detail-body {
+      display: grid;
+      grid-template-columns: minmax(0, 420px) 1fr;
+      gap: clamp(28px, 5vw, 64px);
+      align-items: start;
+    }
+    .artist-detail-body .a-photo {
+      width: 100%; aspect-ratio: 3 / 4; object-fit: cover;
+      filter: grayscale(1); border: 1px solid var(--line);
+    }
+    .artist-detail-body .a-info { display: flex; flex-direction: column; gap: 26px; }
+    .artist-detail-body .a-desc {
+      font-size: 1.15rem; line-height: 1.5; color: rgba(255,255,255,0.85);
+      max-width: 52ch;
+    }
+    .a-links { display: flex; flex-direction: column; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); max-width: 420px; }
+    .a-link {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; background: var(--bg);
+      font-family: var(--font-mono); font-size: 0.82rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--fg);
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), padding-left 0.2s var(--ease);
+    }
+    .a-link:hover { background: var(--fg); color: #000; padding-left: 28px; }
+    .a-link .a-link-arrow { margin-left: auto; transition: transform 0.2s var(--ease); }
+    .a-link:hover .a-link-arrow { transform: translateX(4px); }
+    .a-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════════════ */
+    .site-footer {
+      border-top: 1px solid var(--line);
+      padding: 28px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem; letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ══════════════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      :root { --card-w: 92vw; --card-h: 440px; --nav-h: 52px; }
+      .brand { padding: 0 10px; border-right: 1px solid var(--line); }
+      .brand-text { font-size: 1.05rem; }
+      .home-logo { max-width: 110px; }
+      .tab { letter-spacing: 0.04em; font-size: 0.56rem; padding: 0 2px; }
+      .lang button { padding: 0 9px; font-size: 0.62rem; }
+      .events-grid { grid-template-columns: 1fr; }
+      .photo-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .video-item { padding: 44px 18px; }
+      .artist-detail-body { grid-template-columns: 1fr; }
+      .artist-detail-body .a-photo { max-width: 360px; }
+      .artist-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════ TOP NAV ════════════════════════════ -->
+  <nav class="topnav">
+    <!-- Clickable home logo (top-left). Falls back to HEAVY wordmark if logo.png is missing. -->
+    <button class="brand" onclick="showTab('welcome')" aria-label="Home — Welcome">
+      <img class="home-logo" src="logo.png" alt="HEAVY"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+      <span class="brand-text" style="display:none;">HEAVY</span>
+    </button>
+    <div class="tabs">
+      <button class="tab" data-tab="tickets" onclick="showTab('tickets')">
+        <span class="tab-full" data-i18n="nav-tickets">Tickets</span>
+      </button>
+      <button class="tab" data-tab="photos" onclick="showTab('photos')">
+        <span class="tab-full" data-i18n="nav-photos">Photos</span>
+      </button>
+      <button class="tab" data-tab="booking" onclick="showTab('booking')">
+        <span class="tab-full" data-i18n="nav-booking">Booking</span>
+      </button>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
+      <button id="btn-ua" onclick="setLang('ua')">UA</button>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════ TAB 1 — WELCOME ════════════════════════════ -->
+  <section class="view active" id="view-welcome">
+    <!-- Hero + description share ONE continuous blurred background (no seam).
+         The video source is set from WELCOME_BG (config at top of script). -->
+    <div class="welcome-stage">
+      <div class="welcome-bg">
+        <video id="welcome-video" autoplay muted loop playsinline></video>
+        <div class="bg-overlay"></div>
+      </div>
+
+      <div class="hero">
+        <h1>HEAVY</h1>
+        <div class="scroll-hint" data-i18n="scroll-hint">Scroll ↓</div>
+      </div>
+
+      <!-- First-scroll description (reveals over the same background) -->
+      <section class="welcome-desc reveal">
+        <p data-i18n="welcome-desc">HEAVY is a rave series built on heavy sound and raw energy — a home for nu-era EDM, underground culture, and the artists pushing it forward.</p>
+      </section>
+    </div>
+
+    <!-- Video feed (newest first). Built from the VIDEOS array in JS. -->
+    <div class="feed" id="video-feed"></div>
+  </section>
+
+  <!-- ════════════════════════════ TAB 2 — TICKETS ════════════════════════════ -->
+  <section class="view" id="view-tickets">
+    <!-- Tickets' own background video (source set from TICKETS_BG config) -->
+    <div class="tickets-bg">
+      <video id="bg-video" autoplay muted loop playsinline></video>
+      <div class="bg-overlay"></div>
+    </div>
+
+    <div class="tickets-inner">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="eyebrow">Upcoming Events</p>
+        <h2 data-i18n="headline">Tickets</h2>
+      </div>
+
+      <div class="cards-grid">
+        <!-- ══ EVENT CARD (copy to add more) ══ -->
+        <article class="event-card" tabindex="0" role="button" aria-label="Alter Ego — buy tickets" onclick="openCheckout('alter-ego')">
+          <div class="card-image" style="background-image: url('event-poster.jpg');"></div>
+          <div class="card-gradient"></div>
+          <div class="card-info">
+            <h2 class="card-name">Alter Ego</h2>
+            <div class="card-details">
+              <div class="detail-row">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <div><span class="label" data-i18n="lbl-date">Date & Time</span>May 23, 2026</div>
+              </div>
+              <div class="detail-row">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                <div><span class="label" data-i18n="lbl-place">Place</span>Gurtok</div>
+              </div>
+              <div class="detail-row">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M2 9a2 2 0 0 1 0-4V3h20v2a2 2 0 0 1 0 4v2a2 2 0 0 1 0 4v2H2v-2a2 2 0 0 1 0-4V9z"/>
+                </svg>
+                <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
+              </div>
+            </div>
+            <button class="buy-btn" onclick="event.stopPropagation(); openCheckout('alter-ego')" data-i18n="buy-btn">
+              Buy Ticket
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </article>
+        <!-- ══ END EVENT CARD ══ -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════ TAB 3 — PHOTOS ════════════════════════════ -->
+  <section class="view" id="view-photos">
+    <div class="photos-wrap">
+
+      <!-- Event preview list -->
+      <div id="events-list">
+        <div class="section-head" style="text-align:left;margin-bottom:8px;">
+          <p class="eyebrow" data-i18n="ph-eyebrow">Archive</p>
+          <h2 data-i18n="ph-headline">Photos</h2>
+        </div>
+        <div id="events-rows" class="events-grid"></div>
+      </div>
+
+      <!-- Gallery (hidden until an event is opened) -->
+      <div id="gallery" style="display:none;">
+        <div class="gallery-head">
+          <button class="back-btn" onclick="closeGallery()" data-i18n="back">← Back</button>
+          <h2 id="gallery-title"></h2>
+          <span class="g-date" id="gallery-date"></span>
+        </div>
+        <div id="gallery-body"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════ TAB 4 — BOOKING ════════════════════════════ -->
+  <section class="view" id="view-booking">
+    <div class="photos-wrap">
+
+      <!-- Artist grid -->
+      <div id="artists-list">
+        <div class="section-head" style="text-align:left;margin-bottom:32px;">
+          <p class="eyebrow" data-i18n="bk-eyebrow">Roster</p>
+          <h2 data-i18n="bk-headline">Booking</h2>
+        </div>
+        <div class="artist-grid" id="artists-grid"></div>
+      </div>
+
+      <!-- Artist detail (hidden until an artist is opened) -->
+      <div id="artist-detail" style="display:none;">
+        <div class="gallery-head">
+          <button class="back-btn" onclick="closeArtist()" data-i18n="back">← Back</button>
+          <h2 id="artist-title"></h2>
+        </div>
+        <div class="artist-detail-body" id="artist-detail-body"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════ LIGHTBOX ════════════════════════════ -->
+  <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+    <button class="lb-nav lb-prev" onclick="lbStep(-1)">‹</button>
+    <figure class="lb-figure">
+      <img id="lb-img" src="" alt="" onerror="lbImgFallback()" />
+      <a id="lb-download" class="lb-download" href="#" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>
+        </svg>
+        <span data-i18n="download">Download</span>
+      </a>
+    </figure>
+    <button class="lb-nav lb-next" onclick="lbStep(1)">›</button>
+  </div>
+
+  <!-- ════════════════════════════ CHECKOUT MODAL (detail view + purchase) ════════════════════════════ -->
+  <div class="modal" id="checkout" onclick="if(event.target===this)closeCheckout()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeCheckout()" aria-label="Close">✕</button>
+
+      <!-- Event detail / geo (filled from /api/event) -->
+      <p class="eyebrow" data-i18n="co-eyebrow">Tickets</p>
+      <h2 class="co-name" id="co-name">—</h2>
+      <div class="co-detail" id="co-detail"></div>
+
+      <!-- Purchase form -->
+      <form class="co-form" id="co-form" novalidate>
+        <div class="co-qtyrow">
+          <span class="co-flabel" data-i18n="co-qty">Quantity</span>
+          <div class="qty-stepper">
+            <button type="button" id="qty-dec" aria-label="Decrease">−</button>
+            <input id="co-qty" type="text" inputmode="numeric" value="1" readonly aria-label="Quantity" />
+            <button type="button" id="qty-inc" aria-label="Increase">+</button>
+          </div>
+        </div>
+        <input id="co-email" type="email" autocomplete="email" data-i18n-ph="ph-email" placeholder="Email" />
+        <input id="co-first" type="text" autocomplete="given-name" data-i18n-ph="ph-first" placeholder="First name" />
+        <input id="co-last"  type="text" autocomplete="family-name" data-i18n-ph="ph-last" placeholder="Last name" />
+        <div class="co-total">
+          <span data-i18n="co-total">Total</span>
+          <span id="co-total-val">—</span>
+        </div>
+        <p class="co-error" id="co-error" hidden></p>
+        <button class="co-pay" id="co-pay" type="submit" disabled>
+          <span data-i18n="co-pay">Pay</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* ════════════════════════════════════════════════════════
+       ⚙ BACKGROUND CONFIG  — edit these to swap tab backgrounds.
+          Each tab has its OWN background (not shared). Drop the
+          file in the project folder and point the constant at it.
+    ════════════════════════════════════════════════════════ */
+    const WELCOME_BG = 'welcome-bg.mp4';  // Welcome page background video
+    const TICKETS_BG = 'background.mp4';   // Tickets page background video
+
+    /* ════════════════════════════════════════════════════════
+       1) VIDEOS  — Welcome feed.  NEWEST FIRST (top of array).
+          To add a video: add an object at the TOP of this list.
+          Use a YouTube or Vimeo *embed* URL.
+            YouTube:  https://www.youtube.com/embed/VIDEO_ID
+            Vimeo:    https://player.vimeo.com/video/VIDEO_ID
+    ════════════════════════════════════════════════════════ */
+    // Source: youtube.com/@heavy_rave — full videos only (Shorts excluded), newest first.
+    const VIDEOS = [
+      { title: 'Alter Ego — etoyle Mix',            embed: 'https://www.youtube.com/embed/EFLzbruQQXw' },
+      { title: 'Heavy: Alter Ego — Artem Mix',      embed: 'https://www.youtube.com/embed/xs30jEZNhy0' },
+      { title: 'Heavy ULTRA — ToXid x Smolyakov',   embed: 'https://www.youtube.com/embed/V-t6nHGsef0' },
+      { title: 'Heavy:ULTRA — Cold Embrace Mix',    embed: 'https://www.youtube.com/embed/-_l4d2wPGpY' },
+      { title: 'Heavy:ULTRA — M47UR Mix',           embed: 'https://www.youtube.com/embed/Z_u_GkH3BHM' },
+      { title: 'Heavy:ULTRA — Mad Cult Mix',        embed: 'https://www.youtube.com/embed/4ccSRcjqJFQ' },
+      { title: 'Heavy:ULTRA — Gribovskii37 Mix',    embed: 'https://www.youtube.com/embed/7yjXHNDNSjs' },
+      { title: 'Heavy:ULTRA — ELMAR Mix',           embed: 'https://www.youtube.com/embed/71VoedgpRBA' },
+    ];
+
+    /* ════════════════════════════════════════════════════════
+       2) EVENTS  — Photos archive.
+          Each event = name, date, cover image, and ONE pCloud
+          PUBLIC FOLDER link (or just its ?code= value).
+          To add an event: append an object here.
+       Note: photos load via the server /api/photos endpoint,
+             which resolves the pCloud public folder.
+    ════════════════════════════════════════════════════════ */
+    const EVENTS = [
+      {
+        name: 'Ultra',
+        date: 'June 7, 2025',
+        cover: 'ultra-cover.jpg',    // falls back to first pCloud photo if missing
+        pcloud: 'https://e.pcloud.link/publink/show?code=kZNrycZV0vLf65UQPRCIsW0nHqWl0mIQBEy',
+      },
+      {
+        name: 'Alter Ego',
+        date: 'May 23, 2026',
+        cover: 'alter-ego-cover.jpg',
+        pcloud: 'https://e.pcloud.link/publink/show?code=kZFF9rZt93YKuhWiYBMBXpx0WvFSBGKvx8y',
+      },
+      // { name: 'Next Event', date: '12 Sep 2025', cover: 'cover2.jpg', pcloud: 'https://e.pcloud.link/publink/show?code=...' },
+    ];
+
+    /* ════════════════════════════════════════════════════════
+       3) ARTISTS  — Booking roster.
+          Each artist = name, photo, description, and links.
+          Only the platforms you fill in are shown.
+          To add an artist: append an object here.
+    ════════════════════════════════════════════════════════ */
+    const ARTISTS = [
+      {
+        name: 'Artem',
+        photo: 'artist-artem.jpg',
+        description: 'A nu era EDM artist.',
+        links: {
+          soundcloud: 'https://soundcloud.com/geturliferuined',
+          spotify:    'https://open.spotify.com/artist/2WacirhGuKdJFqQDpjXxlO?si=eoW37WAkShiET6LDreroLw',
+          applemusic: 'https://music.apple.com/ua/artist/artem/1857377048',
+          instagram:  'https://www.instagram.com/internetkiddd_/',
+        },
+      },
+      {
+        name: 'Etoyle',
+        photo: 'artist-etoyle.jpg',
+        description: 'Destruction kid',
+        links: {
+          soundcloud: 'https://soundcloud.com/etoyle',
+          spotify:    'https://open.spotify.com/artist/2kcDrM2ijLkJ9qhLDKCRBi',
+          instagram:  'https://www.instagram.com/etoyledub/',
+        },
+      },
+      {
+        name: 'Mad Cult',
+        photo: 'artist-mad-cult.jpg',
+        description: 'become the cult',
+        links: {
+          soundcloud: 'https://soundcloud.com/mad-cult',
+          spotify:    'https://open.spotify.com/artist/44QsCE1d0j1qISv4LyWQgC?si=adrSMDIKQe-kSuMQ15Gz4Q',
+          instagram:  'https://www.instagram.com/mad_cvlt/',
+        },
+      },
+      {
+        name: 'Smolyakov',
+        photo: 'artist-smolyakov.jpg',
+        description: 'chill guy',
+        links: {
+          instagram: 'https://www.instagram.com/smolyakovevgeny/',
+        },
+      },
+      // { name: 'Next Artist', photo: 'artist-x.jpg', description: '…', links: { spotify: '…', instagram: '…' } },
+    ];
+
+    /* ════════════════════════════════════════════════════════
+       TRANSLATIONS
+    ════════════════════════════════════════════════════════ */
+    const i18n = {
+      en: {
+        'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking',
+        'scroll-hint': 'Scroll ↓',
+        'welcome-desc': 'HEAVY is a rave series built on heavy sound and raw energy — a home for nu-era EDM, underground culture, and the artists pushing it forward.',
+        'eyebrow': 'Upcoming Events', 'headline': 'Tickets',
+        'lbl-date': 'Date & Time', 'lbl-place': 'Place', 'lbl-price': 'Price',
+        'lbl-time': 'Time', 'lbl-geo': 'Map', 'open-map': 'Open in maps ↗',
+        'ticket-price': '300 UAH', 'buy-btn': 'Buy Ticket',
+        'co-eyebrow': 'Get Tickets', 'co-qty': 'Quantity', 'co-total': 'Total', 'co-pay': 'Pay',
+        'ph-email': 'Email', 'ph-first': 'First name', 'ph-last': 'Last name',
+        'ph-eyebrow': 'Archive', 'ph-headline': 'Photos', 'back': '← Back', 'download': 'Download',
+        'bk-eyebrow': 'Roster', 'bk-headline': 'Booking',
+        'footer': '© 2025 · Alter Ego',
+      },
+      ua: {
+        'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг',
+        'scroll-hint': 'Гортай ↓',
+        'welcome-desc': 'HEAVY — це серія рейвів, побудована на важкому звуці та сирій енергії: дім для EDM нової ери, андеграундної культури та артистів, що рухають її вперед.',
+        'eyebrow': 'Найближчі події', 'headline': 'Квитки',
+        'lbl-date': 'Дата та час', 'lbl-place': 'Місце', 'lbl-price': 'Ціна',
+        'lbl-time': 'Час', 'lbl-geo': 'Мапа', 'open-map': 'Відкрити в картах ↗',
+        'ticket-price': '300 грн', 'buy-btn': 'Придбати квиток',
+        'co-eyebrow': 'Придбати квитки', 'co-qty': 'Кількість', 'co-total': 'Разом', 'co-pay': 'Сплатити',
+        'ph-email': 'Email', 'ph-first': "Ім'я", 'ph-last': 'Прізвище',
+        'ph-eyebrow': 'Архів', 'ph-headline': 'Фото', 'back': '← Назад', 'download': 'Завантажити',
+        'bk-eyebrow': 'Резиденти', 'bk-headline': 'Букінг',
+        'footer': '© 2025 · Alter Ego',
+      },
+    };
+    let currentLang = 'en';
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.getElementById('btn-ua').classList.toggle('active', lang === 'ua');
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key] === undefined) return;
+        if (key === 'buy-btn') { el.childNodes[0].textContent = i18n[lang][key] + ' '; }
+        else { el.textContent = i18n[lang][key]; }
+      });
+      // Input placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (i18n[lang][key] !== undefined) el.setAttribute('placeholder', i18n[lang][key]);
+      });
+      document.documentElement.lang = lang === 'ua' ? 'uk' : 'en';
+    }
+
+    /* ════════════════════════════════════════════════════════
+       TAB NAVIGATION
+    ════════════════════════════════════════════════════════ */
+    function showTab(name) {
+      // Always reset detail views so a tab opens at its ROOT screen
+      // (event list / artist list), never the previously-opened detail.
+      closeGallery();
+      closeArtist();
+      closeLightbox();
+
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      document.getElementById('view-' + name).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      metaTrack('ViewContent', { content_name: 'tab:' + name });
+    }
+
+    /* ════════════════════════════════════════════════════════
+       SCROLL REVEAL  (shared across tabs)
+    ════════════════════════════════════════════════════════ */
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObserver.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    function observeReveals(root) {
+      (root || document).querySelectorAll('.reveal:not(.in)').forEach(el => revealObserver.observe(el));
+    }
+
+    /* ════════════════════════════════════════════════════════
+       BUILD WELCOME VIDEO FEED
+    ════════════════════════════════════════════════════════ */
+    function buildVideoFeed() {
+      const feed = document.getElementById('video-feed');
+      feed.innerHTML = VIDEOS.map((v, i) => `
+        <div class="video-item reveal">
+          <div class="video-head">
+            <span class="video-index">${String(i + 1).padStart(2, '0')}</span>
+            <h3 class="video-title">${v.title}</h3>
+          </div>
+          <div class="video-frame">
+            <iframe src="${v.embed}" title="${v.title}" loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+        </div>`).join('');
+      observeReveals(feed);
+    }
+
+    /* ════════════════════════════════════════════════════════
+       BUILD PHOTOS — event preview list
+    ════════════════════════════════════════════════════════ */
+    function buildEventList() {
+      const rows = document.getElementById('events-rows');
+      rows.innerHTML = EVENTS.map((ev, i) => `
+        <article class="ev-card reveal" onclick="openGallery(${i})"
+                 tabindex="0" role="button" aria-label="${ev.name} — open gallery">
+          <img class="ev-cover" src="${ev.cover}" alt="${ev.name}" loading="lazy"
+               onerror="coverFallback(this, ${i})" />
+          <div class="ev-meta">
+            <div class="ev-name">${ev.name}</div>
+            <div class="ev-date">${ev.date}</div>
+          </div>
+        </article>`).join('');
+      // Keyboard access: Enter/Space opens the gallery.
+      rows.querySelectorAll('.ev-card').forEach((card, i) => {
+        card.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openGallery(i); }
+        });
+      });
+      observeReveals(rows);
+    }
+
+    /* If an event's local cover file is missing, fall back to the
+       first photo in its pCloud album so the row never looks broken. */
+    async function coverFallback(img, i) {
+      img.onerror = null; // prevent loops
+      const ev = EVENTS[i];
+      if (!ev.pcloud || ev.pcloud.indexOf('PASTE_') === 0) return;
+      try {
+        const data = await fetch('/api/photos?code=' + encodeURIComponent(ev.pcloud)).then(r => r.json());
+        if (data.ok && data.photos.length) img.src = data.photos[0].thumb;
+      } catch (e) { /* leave placeholder background */ }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       BOOKING — artist roster
+    ════════════════════════════════════════════════════════ */
+    // SVG icons per platform (inherit currentColor).
+    const PLATFORM_ICONS = {
+      soundcloud: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 14.5a.5.5 0 0 1 1 0v3a.5.5 0 0 1-1 0v-3zm2-1a.5.5 0 0 1 1 0v4a.5.5 0 0 1-1 0v-4zm2-1.2a.5.5 0 0 1 1 0v5.2a.5.5 0 0 1-1 0v-5.2zm2-.6a.5.5 0 0 1 1 0v5.8a.5.5 0 0 1-1 0v-5.8zm2-.4a.5.5 0 0 1 1 0v6.2a.5.5 0 0 1-1 0v-6.2zM11 9a.5.5 0 0 1 1 0v9a.5.5 0 0 1-1 0V9zm2.5-.5a.6.6 0 0 1 1.2 0V18a.6.6 0 0 1-1.2 0V8.5zM16 7.5C16 6 17.2 5 18.7 5c2.4 0 4.3 1.9 4.3 4.3 0 .2 0 .5-.1.7H16V7.5z"/></svg>',
+      spotify:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.62.62 0 0 1-.86.21c-2.35-1.44-5.3-1.76-8.79-.96a.62.62 0 1 1-.28-1.21c3.8-.87 7.07-.5 9.71 1.11.3.18.39.57.22.85zm1.23-2.74a.78.78 0 0 1-1.07.26c-2.69-1.65-6.79-2.13-9.97-1.17a.78.78 0 1 1-.45-1.49c3.63-1.1 8.15-.56 11.24 1.33.37.23.49.71.25 1.07zm.11-2.85C14.83 8.96 9.3 8.78 6.2 9.72a.93.93 0 1 1-.54-1.78c3.56-1.08 9.66-.87 13.48 1.4a.93.93 0 1 1-.95 1.6z"/></svg>',
+      applemusic: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3.5c-.6.1-3.9.7-7.2 1.3-.5.1-.8.5-.8 1v9.6a3 3 0 1 0 1.5 2.6V8.3l6-1.1v6.5a3 3 0 1 0 1.5 2.6V4.3c0-.6-.5-.9-1-.8z"/></svg>',
+      instagram:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+    };
+    const PLATFORM_LABELS = { soundcloud: 'SoundCloud', spotify: 'Spotify', applemusic: 'Apple Music', instagram: 'Instagram' };
+
+    function buildArtists() {
+      const grid = document.getElementById('artists-grid');
+      grid.innerHTML = ARTISTS.map((a, i) => `
+        <div class="artist-card" onclick="openArtist(${i})">
+          <img src="${a.photo}" alt="${a.name}" loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.closest('.artist-card').classList.add('no-photo')" />
+          <span class="a-idx">${String(i + 1).padStart(2, '0')}</span>
+          <span class="a-name">${a.name}</span>
+        </div>`).join('');
+    }
+
+    function openArtist(i) {
+      const a = ARTISTS[i];
+      document.getElementById('artists-list').style.display = 'none';
+      document.getElementById('artist-detail').style.display = 'block';
+      document.getElementById('artist-title').textContent = a.name;
+      metaTrack('ViewContent', { content_name: 'artist:' + a.name });
+
+      const linksHtml = Object.keys(a.links || {})
+        .filter(k => a.links[k])
+        .map(k => `
+          <a class="a-link" href="${a.links[k]}" target="_blank" rel="noopener"
+             onclick="metaTrack('Lead', { content_name: '${a.name} · ${PLATFORM_LABELS[k] || k}' })">
+            ${PLATFORM_ICONS[k] || ''}
+            <span>${PLATFORM_LABELS[k] || k}</span>
+            <span class="a-link-arrow">↗</span>
+          </a>`).join('');
+
+      document.getElementById('artist-detail-body').innerHTML = `
+        <img class="a-photo" src="${a.photo}" alt="${a.name}" />
+        <div class="a-info">
+          <p class="a-desc">${a.description || ''}</p>
+          <div class="a-links">${linksHtml}</div>
+        </div>`;
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    function closeArtist() {
+      document.getElementById('artist-detail').style.display = 'none';
+      document.getElementById('artists-list').style.display = 'block';
+    }
+
+    /* ════════════════════════════════════════════════════════
+       PHOTOS — gallery + pCloud loading
+    ════════════════════════════════════════════════════════ */
+    let currentPhotos = [];
+    let currentCode = '';
+    let currentEventName = '';
+
+    async function openGallery(index) {
+      const ev = EVENTS[index];
+      document.getElementById('events-list').style.display = 'none';
+      document.getElementById('gallery').style.display = 'block';
+      document.getElementById('gallery-title').textContent = ev.name;
+      document.getElementById('gallery-date').textContent = ev.date;
+      const body = document.getElementById('gallery-body');
+      currentPhotos = [];
+      currentCode = ev.pcloud;
+      currentEventName = ev.name;
+      for (const k in lbPreload) delete lbPreload[k]; // drop previous album's preloads
+
+      metaTrack('ViewContent', { content_name: 'album:' + ev.name });
+
+      if (!ev.pcloud || ev.pcloud.indexOf('PASTE_') === 0) {
+        body.innerHTML = `<div class="gallery-status" data-i18n="ph-empty">No pCloud link set for this event yet.</div>`;
+        return;
+      }
+
+      body.innerHTML = `<div class="gallery-status">Loading photos…</div>`;
+      try {
+        const res = await fetch('/api/photos?code=' + encodeURIComponent(ev.pcloud));
+        const data = await res.json();
+        if (!data.ok || !data.photos.length) {
+          body.innerHTML = `<div class="gallery-status">No photos found.</div>`;
+          return;
+        }
+        currentPhotos = data.photos; // { name, fileid, thumb }  (full resolved on demand)
+        // Native lazy-loading: browser only fetches thumbnails as they scroll in.
+        body.innerHTML = `<div class="photo-grid">` + data.photos.map((p, i) => `
+          <img src="${p.thumb}" alt="${p.name}" loading="lazy"
+               onclick="openLightbox(${i})" onload="this.classList.add('loaded')" />
+        `).join('') + `</div>`;
+      } catch (err) {
+        body.innerHTML = `<div class="gallery-status">Could not load album.</div>`;
+        console.error(err);
+      }
+    }
+
+    function closeGallery() {
+      document.getElementById('gallery').style.display = 'none';
+      document.getElementById('events-list').style.display = 'block';
+    }
+
+    /* ════════════════════════════════════════════════════════
+       LIGHTBOX  — resolves full-size on demand (deferred from grid)
+    ════════════════════════════════════════════════════════ */
+    let lbIndex = 0;
+
+    // Large DISPLAY image: a big getpubthumb (direct from pCloud, no JSON
+    // round-trip, no multi-MB original). Far faster than getpublinkdownload,
+    // and getpubthumb has no IP-bound token so the browser loads it directly.
+    // Falls back to deriving from the 600px thumb if an older payload lacks `large`.
+    function lbLargeUrl(p) {
+      return p.large || p.thumb.replace('size=600x600', 'size=2048x2048');
+    }
+
+    // Preload cache so revisits + neighbor prefetch are instant.
+    const lbPreload = {};
+    function preloadLarge(i) {
+      const p = currentPhotos[i];
+      if (!p) return null;
+      const url = lbLargeUrl(p);
+      if (!lbPreload[url]) { const im = new Image(); im.src = url; lbPreload[url] = im; }
+      return lbPreload[url];
+    }
+
+    function showLbImage(i) {
+      const img = document.getElementById('lb-img');
+      const p = currentPhotos[i];
+      const url = lbLargeUrl(p);
+
+      updateDownloadLink(i);
+
+      const hi = preloadLarge(i);
+      if (hi.complete && hi.naturalWidth > 0) {
+        // Already cached → show sharp immediately, no placeholder flash.
+        img.classList.remove('lb-loading');
+        img.src = url;
+      } else {
+        // Instant placeholder: the grid thumb is already loaded; show it blurred,
+        // then swap to the sharp large image the moment it finishes.
+        img.classList.add('lb-loading');
+        img.src = p.thumb;
+        hi.onload  = () => { if (lbIndex === i) { img.src = url; img.classList.remove('lb-loading'); } };
+        hi.onerror = () => { if (lbIndex === i) { img.classList.remove('lb-loading'); } }; // keep thumb
+      }
+
+      // Prefetch neighbours so ‹ › / swipe feel instant.
+      preloadLarge((i + 1) % currentPhotos.length);
+      preloadLarge((i - 1 + currentPhotos.length) % currentPhotos.length);
+    }
+
+    // onerror safety net on the visible image: never vanish — fall back to thumb.
+    function lbImgFallback() {
+      const p = currentPhotos[lbIndex];
+      const img = document.getElementById('lb-img');
+      if (p && img.src !== p.thumb) { img.src = p.thumb; img.classList.remove('lb-loading'); }
+    }
+
+    // Point the Download button at our same-origin streaming endpoint, which
+    // serves the FULL-resolution file with a Content-Disposition filename.
+    function updateDownloadLink(i) {
+      const p = currentPhotos[i];
+      const a = document.getElementById('lb-download');
+      if (!p) return;
+      const ext = (p.name && p.name.match(/\.\w{2,4}$/)) ? p.name.match(/\.\w{2,4}$/)[0] : '.jpg';
+      const slug = (currentEventName || 'photo').replace(/\s+/g, '-');
+      const filename = `${slug}-${String(i + 1).padStart(2, '0')}${ext}`;
+      a.href = `/api/download?code=${encodeURIComponent(currentCode)}&fileid=${p.fileid}&name=${encodeURIComponent(filename)}`;
+      a.setAttribute('download', filename);
+    }
+
+    function openLightbox(i) {
+      lbIndex = i;
+      document.getElementById('lightbox').classList.add('open');
+      showLbImage(i);
+    }
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+    function lbStep(dir) {
+      if (!currentPhotos.length) return;
+      lbIndex = (lbIndex + dir + currentPhotos.length) % currentPhotos.length;
+      showLbImage(lbIndex);
+    }
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lbStep(-1);
+      if (e.key === 'ArrowRight') lbStep(1);
+    });
+
+    // ── Mobile swipe navigation (left = next, right = prev) ──
+    // Natural feel: needs a clear horizontal gesture, fast enough, and dominant
+    // over vertical so it never hijacks normal vertical scrolling.
+    (function () {
+      const lb = document.getElementById('lightbox');
+      let sx = 0, sy = 0, st = 0;
+      lb.addEventListener('touchstart', e => {
+        const t = e.changedTouches[0];
+        sx = t.clientX; sy = t.clientY; st = Date.now();
+      }, { passive: true });
+      lb.addEventListener('touchend', e => {
+        const t = e.changedTouches[0];
+        const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
+        // ≥50px horizontal, clearly more horizontal than vertical, within 700ms
+        if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.4 && dt <= 700) {
+          lbStep(dx < 0 ? 1 : -1);   // swipe left → next, swipe right → prev
+        }
+      }, { passive: true });
+    })();
+
+    /* ════════════════════════════════════════════════════════
+       TICKETS — checkout modal (detail view + quantity + buyer form)
+       The server decides the amount; the client only sends the ticket
+       id, quantity and buyer info.
+    ════════════════════════════════════════════════════════ */
+    let coEvent = null;     // event info from /api/event
+    let coQty = 1;
+
+    function emailValid(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim()); }
+    function isPlaceholder(s) { return typeof s === 'string' && s.indexOf('<<') === 0; }
+
+    async function openCheckout(ticketId) {
+      const m = document.getElementById('checkout');
+      document.getElementById('co-name').textContent = '…';
+      document.getElementById('co-detail').innerHTML = '';
+      document.getElementById('co-error').hidden = true;
+      document.getElementById('co-form').reset();
+      coQty = 1; document.getElementById('co-qty').value = '1';
+      m.classList.add('open');
+      metaTrack('ViewContent', { content_name: 'ticket:' + ticketId });
+
+      try {
+        const ev = await fetch('/api/event?id=' + encodeURIComponent(ticketId)).then(r => r.json());
+        if (ev.error) throw new Error(ev.error);
+        coEvent = ev; coEvent.ticketId = ticketId;
+        document.getElementById('co-name').textContent = ev.name;
+
+        // Build the detail view (date / time / venue / description / geo tag).
+        const L = i18n[currentLang];
+        const rows = [];
+        rows.push(detailRow(L['lbl-date'] || 'Date', ev.date));
+        if (ev.time && !isPlaceholder(ev.time)) rows.push(detailRow(L['lbl-time'] || 'Time', ev.time));
+        const venue = ev.venue + (ev.address && !isPlaceholder(ev.address) ? ' · ' + ev.address : '');
+        rows.push(detailRow(L['lbl-place'] || 'Place', venue));
+        if (ev.mapUrl) rows.push(detailRow(L['lbl-geo'] || 'Map', `<a href="${ev.mapUrl}" target="_blank" rel="noopener">${L['open-map'] || 'Open in maps ↗'}</a>`));
+        if (ev.description && !isPlaceholder(ev.description)) rows.push(`<p class="co-desc">${ev.description}</p>`);
+        document.getElementById('co-detail').innerHTML = rows.join('');
+
+        // quantity bounds + total
+        document.getElementById('qty-inc').disabled = false;
+        document.getElementById('qty-dec').disabled = true;
+        coEvent.maxQty = ev.maxQty || 10;
+        updateTotal();
+        validateCheckout();
+      } catch (err) {
+        console.error('event load failed', err);
+        document.getElementById('co-detail').innerHTML = '';
+        document.getElementById('co-name').textContent = coEvent ? coEvent.name : 'Tickets';
+      }
+    }
+    function detailRow(k, v) { return `<div class="co-drow"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
+    function closeCheckout() { document.getElementById('checkout').classList.remove('open'); }
+
+    function changeQty(d) {
+      if (!coEvent) return;
+      coQty = Math.max(1, Math.min(coEvent.maxQty || 10, coQty + d));
+      document.getElementById('co-qty').value = String(coQty);
+      document.getElementById('qty-dec').disabled = coQty <= 1;
+      document.getElementById('qty-inc').disabled = coQty >= (coEvent.maxQty || 10);
+      updateTotal();
+    }
+    function updateTotal() {
+      const price = coEvent && coEvent.priceUah != null ? coEvent.priceUah : 0;
+      document.getElementById('co-total-val').textContent = (price * coQty) + ' UAH';
+    }
+    function validateCheckout() {
+      const email = document.getElementById('co-email');
+      const first = document.getElementById('co-first');
+      const last  = document.getElementById('co-last');
+      const ok = emailValid(email.value) && first.value.trim() && last.value.trim();
+      document.getElementById('co-pay').disabled = !ok;
+      return ok;
+    }
+
+    document.getElementById('qty-inc').addEventListener('click', () => changeQty(1));
+    document.getElementById('qty-dec').addEventListener('click', () => changeQty(-1));
+    ['co-email', 'co-first', 'co-last'].forEach(id => {
+      document.getElementById(id).addEventListener('input', validateCheckout);
+    });
+
+    document.getElementById('co-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!coEvent || !validateCheckout()) return;
+      const payBtn = document.getElementById('co-pay');
+      const errEl = document.getElementById('co-error');
+      errEl.hidden = true;
+      const email = document.getElementById('co-email').value.trim();
+      const firstName = document.getElementById('co-first').value.trim();
+      const lastName = document.getElementById('co-last').value.trim();
+
+      metaTrack('InitiateCheckout', {
+        content_name: coEvent.name, currency: 'UAH',
+        value: (coEvent.priceUah || 0) * coQty, num_items: coQty,
+      });
+
+      payBtn.disabled = true;
+      payBtn.querySelector('span').textContent = (currentLang === 'ua' ? 'Зачекайте…' : 'Please wait…');
+      try {
+        const r = await fetch('/api/create-invoice', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticket: coEvent.ticketId, quantity: coQty, email, firstName, lastName, lang: currentLang }),
+        });
+        const data = await r.json();
+        if (r.ok && data.pageUrl) { window.location.href = data.pageUrl; return; }
+        throw new Error(data.error || 'create-invoice failed');
+      } catch (err) {
+        console.error('Checkout error:', err);
+        errEl.textContent = (currentLang === 'ua' ? 'Не вдалося розпочати оплату. Спробуйте ще раз.' : 'Could not start payment. Please try again.');
+        errEl.hidden = false;
+        payBtn.disabled = false;
+        payBtn.querySelector('span').textContent = i18n[currentLang]['co-pay'] || 'Pay';
+      }
+    });
+
+    // Esc closes the modal; keyboard activate on event card
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('checkout').classList.contains('open')) closeCheckout();
+    });
+    document.querySelectorAll('.event-card').forEach(card => {
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCheckout('alter-ego'); }
+      });
+    });
+
+    /* ════════════════════════════════════════════════════════
+       INIT
+    ════════════════════════════════════════════════════════ */
+    // Apply each tab's own background source (config at top of script).
+    function setVideoSrc(id, src) {
+      const v = document.getElementById(id);
+      if (v) { v.src = src; v.load(); }
+    }
+    setVideoSrc('welcome-video', WELCOME_BG);
+    setVideoSrc('bg-video', TICKETS_BG);
+
+    buildVideoFeed();
+    buildEventList();
+    buildArtists();
+    observeReveals(document.getElementById('view-welcome')); // incl. .welcome-desc
+    setLang('en');
+  </script>
+
+</body>
+</html>

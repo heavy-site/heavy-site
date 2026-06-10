@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+# Never commit private keys / certs
+*.pem
+*.key
+keys/
+.DS_Store
+.claude/
