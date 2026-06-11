@@ -7,6 +7,9 @@
   RewriteRule ^api/download/?$  /api/download.php [L,QSA]
   RewriteRule ^api/photo/?$     /api/download.php?inline=1 [L,QSA]
 
+  # Event info for the checkout modal
+  RewriteRule ^api/event/?$            /api/event.php            [L,QSA]
+
   # Monobank acquiring (PHP backend)
   RewriteRule ^api/create-invoice/?$   /api/create-invoice.php   [L,QSA]
   RewriteRule ^api/check-status/?$     /api/check-status.php     [L,QSA]
