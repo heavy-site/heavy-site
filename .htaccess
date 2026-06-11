@@ -6,4 +6,17 @@
   RewriteRule ^api/photos/?$    /api/photos.php   [L,QSA]
   RewriteRule ^api/download/?$  /api/download.php [L,QSA]
   RewriteRule ^api/photo/?$     /api/download.php?inline=1 [L,QSA]
+
+  # Monobank acquiring (PHP backend)
+  RewriteRule ^api/create-invoice/?$   /api/create-invoice.php   [L,QSA]
+  RewriteRule ^api/check-status/?$     /api/check-status.php     [L,QSA]
+  RewriteRule ^api/monobank-webhook/?$ /api/monobank-webhook.php [L,QSA]
+
+  # Pretty path for the result page
+  RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
 </IfModule>
+
+# Belt-and-suspenders: if a monobank_config.php ever lands in the web root, deny it.
+<FilesMatch "^monobank_config.*\.php$">
+  Require all denied
+</FilesMatch>

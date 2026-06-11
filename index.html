@@ -1536,7 +1536,15 @@
           body: JSON.stringify({ ticket: coEvent.ticketId, quantity: coQty, email, firstName, lastName, lang: currentLang }),
         });
         const data = await r.json();
-        if (r.ok && data.pageUrl) { window.location.href = data.pageUrl; return; }
+        if (r.ok && data.pageUrl) {
+          // Save the id so /payment-result can verify the real status after the round-trip.
+          try {
+            if (data.invoiceId) localStorage.setItem('mono_invoiceId', data.invoiceId);
+            if (data.reference) localStorage.setItem('mono_ref', data.reference);
+          } catch (_) {}
+          window.location.href = data.pageUrl;
+          return;
+        }
         throw new Error(data.error || 'create-invoice failed');
       } catch (err) {
         console.error('Checkout error:', err);

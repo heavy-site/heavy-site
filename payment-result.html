@@ -47,7 +47,16 @@
 
   <script>
     const params = new URLSearchParams(location.search);
-    const ref = params.get('ref') || params.get('invoiceId');
+    // Prefer invoiceId (cPanel/PHP flow stashes it in localStorage before the
+    // redirect); fall back to ?ref / stored ref (Node/LXC flow).
+    let invoiceId = params.get('invoiceId') || '';
+    let ref = params.get('ref') || '';
+    try {
+      if (!invoiceId) invoiceId = localStorage.getItem('mono_invoiceId') || '';
+      if (!ref)       ref       = localStorage.getItem('mono_ref') || '';
+    } catch (_) {}
+    const lookup = invoiceId ? ('invoiceId=' + encodeURIComponent(invoiceId))
+                 : ref       ? ('ref=' + encodeURIComponent(ref)) : '';
     const lang = (navigator.language || 'en').startsWith('uk') ? 'ua' : 'en';
     const T = {
       en: { checking:'Checking…', confirming:'Confirming your payment with the bank.',
@@ -63,7 +72,8 @@
     }[lang];
 
     const $ = id => document.getElementById(id);
-    if (ref) $('ref').textContent = 'REF ' + ref;
+    const shownId = invoiceId || ref;
+    if (shownId) $('ref').textContent = 'REF ' + shownId;
 
     function render(state) {
       $('spinner').style.display = (state === 'pending' || state === 'checking') ? 'block' : 'none';
@@ -77,9 +87,9 @@
     }
 
     async function check() {
-      if (!ref) { render('noref'); return; }
+      if (!lookup) { render('noref'); return; }
       try {
-        const r = await fetch('/api/check-status?ref=' + encodeURIComponent(ref));
+        const r = await fetch('/api/check-status?' + lookup);
         const d = await r.json();
         const s = d.status;
         if (s === 'success') return render('success');
