@@ -34,6 +34,15 @@ if (!defined('MONO_API'))      define('MONO_API', 'https://api.monobank.ua');
 if (!defined('MONO_DATA_DIR')) define('MONO_DATA_DIR', ($__mono_cfg ? dirname($__mono_cfg) : sys_get_temp_dir()) . '/mono_orders');
 @mkdir(MONO_DATA_DIR, 0700, true);
 
+// Capture PHP fatals/errors to a readable file (outside the web root).
+ini_set('log_errors', '1');
+ini_set('error_log', MONO_DATA_DIR . '/php_error.log');
+
+// Append a timestamped line to the webhook debug log (outside web root).
+function wlog($msg) {
+  @file_put_contents(MONO_DATA_DIR . '/webhook.log', '[' . date('Y-m-d H:i:s') . '] ' . $msg . "\n", FILE_APPEND);
+}
+
 function mono_token_ok() {
   return defined('MONOBANK_TOKEN') && MONOBANK_TOKEN !== '' && MONOBANK_TOKEN !== 'REPLACE_WITH_YOUR_MONOBANK_TOKEN';
 }

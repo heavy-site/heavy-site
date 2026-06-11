@@ -129,6 +129,7 @@ function send_ticket_email($order, $tickets, $ev) {
         . '<p style="font-size:12px;color:#999;text-align:center">' . $L['foot'] . '</p></div>';
 
   $payload = ['from' => $from, 'to' => [$to], 'subject' => $L['subj'], 'html' => $html, 'attachments' => $attachments];
+  if (function_exists('wlog')) wlog('RESEND from=' . $from . ' to=' . $to . ' attachments=' . count($attachments));
 
   $ch = curl_init('https://api.resend.com/emails');
   curl_setopt_array($ch, [
@@ -138,6 +139,8 @@ function send_ticket_email($order, $tickets, $ev) {
   ]);
   $resp = curl_exec($ch);
   $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  $err  = curl_error($ch);
+  if (function_exists('wlog')) wlog('RESEND HTTP ' . $code . ($err ? ' curlerr=' . $err : '') . ' body=' . substr((string)$resp, 0, 600));
   error_log('[tickets] Resend HTTP ' . $code . ': ' . substr((string)$resp, 0, 500));
   return $code >= 200 && $code < 300;
 }
