@@ -15,8 +15,13 @@
   RewriteRule ^api/check-status/?$     /api/check-status.php     [L,QSA]
   RewriteRule ^api/monobank-webhook/?$ /api/monobank-webhook.php [L,QSA]
 
-  # Pretty path for the result page
+  # Door ticket verification (POST /use marks used; GET checks)
+  RewriteRule ^api/verify-ticket/use/?$ /api/verify-ticket.php   [L,QSA]
+  RewriteRule ^api/verify-ticket/?$     /api/verify-ticket.php   [L,QSA]
+
+  # Pretty paths
   RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
+  RewriteRule ^verify/?$               /verify.html              [L,QSA]
 </IfModule>
 
 # Belt-and-suspenders: if a monobank_config.php ever lands in the web root, deny it.

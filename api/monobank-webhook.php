@@ -3,6 +3,7 @@
    Verifies the X-Sign (ECDSA-SHA256) over the RAW body with Monobank's
    public key before acting. Only valid + status==="success" marks paid. */
 require __DIR__ . '/_mono.php';
+require __DIR__ . '/_tickets.php';
 
 if (!mono_token_ok()) { http_response_code(500); exit; }
 
@@ -44,12 +45,10 @@ if ($order) {
   $order['status'] = $status;
   if ($status === 'success' && empty($order['paid'])) {
     $order['paid'] = true;
-    // ───────────────────────── TODO ─────────────────────────
-    // Payment confirmed AND signature verified. Generate the
-    // ticket(s) + email the buyer here (wire in your logic).
-    // Order context available: $order['email'], firstName,
-    // lastName, quantity, reference, invoiceId.
-    // ─────────────────────────────────────────────────────────
+    // Payment confirmed AND signature verified → generate signed QR
+    // tickets and email them (idempotent; logs Resend response).
+    try { issue_tickets_and_email($order); }
+    catch (\Throwable $e) { error_log('[webhook] issue_tickets failed: ' . $e->getMessage()); }
   }
   order_save($invoiceId, $order);
 }
