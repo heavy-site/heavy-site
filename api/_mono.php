@@ -10,15 +10,22 @@
 ini_set('display_errors', '0');                 // never leak errors into responses
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 
-// Locate the secret config. Preferred: outside public_html.
-// Adjust the first path if your cPanel home differs.
+// Locate the secret config. Preferred: one level ABOVE the web root.
+// We compute that from DOCUMENT_ROOT so it works regardless of the cPanel
+// home path (e.g. /home3/hevycom/public_html → /home3/hevycom/monobank_config.php).
+$__docroot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') : '';
+$__mono_candidates = [];
+if ($__docroot !== '') {
+  $__mono_candidates[] = dirname($__docroot) . '/monobank_config.php';  // outside web root (preferred)
+  $__mono_candidates[] = $__docroot . '/monobank_config.php';            // inside web root (denied by .htaccess)
+}
+$__mono_candidates[] = '/home3/hevycom/monobank_config.php';
+$__mono_candidates[] = __DIR__ . '/../../monobank_config.php';
+$__mono_candidates[] = __DIR__ . '/../monobank_config.php';
+$__mono_candidates[] = __DIR__ . '/monobank_config.php';
+
 $__mono_cfg = null;
-foreach ([
-  '/home3/hevycom/monobank_config.php',        // ← preferred (outside web root)
-  __DIR__ . '/../../monobank_config.php',        // one level above public_html
-  __DIR__ . '/../monobank_config.php',
-  __DIR__ . '/monobank_config.php',              // last resort INSIDE web root (deny via .htaccess)
-] as $__p) {
+foreach ($__mono_candidates as $__p) {
   if (is_file($__p)) { $__mono_cfg = $__p; break; }
 }
 if ($__mono_cfg) require_once $__mono_cfg;
