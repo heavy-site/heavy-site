@@ -1515,10 +1515,19 @@
 
     document.getElementById('co-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!coEvent || !validateCheckout()) return;
+      console.log('[pay] submit fired');                                   // STEP 1: handler runs
       const payBtn = document.getElementById('co-pay');
       const errEl = document.getElementById('co-error');
+      const showErr = (msg) => {
+        errEl.textContent = (currentLang === 'ua' ? 'Помилка оплати: ' : 'Payment error: ') + msg;
+        errEl.hidden = false;
+        payBtn.disabled = false;
+        payBtn.querySelector('span').textContent = i18n[currentLang]['co-pay'] || 'Pay';
+      };
+      if (!coEvent) { console.warn('[pay] no event loaded'); showErr('event not loaded'); return; }
+      if (!validateCheckout()) { console.warn('[pay] form invalid — fill email + names'); return; }
       errEl.hidden = true;
+
       const email = document.getElementById('co-email').value.trim();
       const firstName = document.getElementById('co-first').value.trim();
       const lastName = document.getElementById('co-last').value.trim();
@@ -1531,27 +1540,31 @@
       payBtn.disabled = true;
       payBtn.querySelector('span').textContent = (currentLang === 'ua' ? 'Зачекайте…' : 'Please wait…');
       try {
+        const payload = { ticket: coEvent.ticketId, quantity: coQty, email, firstName, lastName, lang: currentLang };
+        console.log('[pay] POST /api/create-invoice', payload);            // STEP 2: request sent
         const r = await fetch('/api/create-invoice', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ticket: coEvent.ticketId, quantity: coQty, email, firstName, lastName, lang: currentLang }),
+          body: JSON.stringify(payload),
         });
-        const data = await r.json();
-        if (r.ok && data.pageUrl) {
-          // Save the id so /payment-result can verify the real status after the round-trip.
+        console.log('[pay] response status', r.status, r.statusText);      // STEP 3: status
+        const text = await r.text();
+        let data = null; try { data = JSON.parse(text); } catch (_) {}
+        console.log('[pay] response body', data || text.slice(0, 300));    // STEP 3: body (incl. non-JSON like a 404)
+
+        if (r.ok && data && data.pageUrl) {
           try {
             if (data.invoiceId) localStorage.setItem('mono_invoiceId', data.invoiceId);
             if (data.reference) localStorage.setItem('mono_ref', data.reference);
           } catch (_) {}
+          console.log('[pay] redirecting to', data.pageUrl);               // STEP 4: redirect
           window.location.href = data.pageUrl;
           return;
         }
-        throw new Error(data.error || 'create-invoice failed');
+        // Surface the REAL reason (server error message, or HTTP status for 404/blank).
+        throw new Error((data && data.error) ? data.error : ('HTTP ' + r.status + ' — ' + (text.slice(0, 120) || 'no body')));
       } catch (err) {
-        console.error('Checkout error:', err);
-        errEl.textContent = (currentLang === 'ua' ? 'Не вдалося розпочати оплату. Спробуйте ще раз.' : 'Could not start payment. Please try again.');
-        errEl.hidden = false;
-        payBtn.disabled = false;
-        payBtn.querySelector('span').textContent = i18n[currentLang]['co-pay'] || 'Pay';
+        console.error('[pay] FAILED:', err);
+        showErr(err.message || 'unknown error');
       }
     });
 
