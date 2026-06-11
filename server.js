@@ -313,7 +313,7 @@ const TICKETS = {
   'alter-ego': {
     amount: 30000,            // UNIT price: 300.00 UAH, in kopiykas (server-decided)
     ccy: 980,                 // UAH
-    destination: 'Ticket: Alter Ego, 23.05.2026, Gurtok',
+    destination: 'Ticket: Alter Ego, 28.06.2026, Gurtok',
   },
 };
 
@@ -344,7 +344,7 @@ const SMTP = {
 const EVENTS_INFO = {
   'alter-ego': {
     name:        'Alter Ego',
-    date:        'May 23, 2026',
+    date:        'June 28, 2026',
     time:        '18:00 – 22:00',
     venue:       'Gurtok',
     address:     'Нижньоюрківська 31, Київ',

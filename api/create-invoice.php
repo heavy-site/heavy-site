@@ -5,9 +5,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 if (!mono_token_ok()) { http_response_code(500); echo json_encode(['error' => 'Payments not configured']); exit; }
 
-// ── Amount: SERVER-decided. TEST = 100 kop (1 UAH) per ticket. ──
-// For production change UNIT_KOP to 30000 (300 UAH).
-$UNIT_KOP = 100;
+// ── Amount: SERVER-decided. 30000 kop = 300 UAH per ticket. ──
+$UNIT_KOP = 30000;
 
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) $body = [];
@@ -27,7 +26,7 @@ $payload = [
   'ccy'    => 980,                                   // UAH
   'merchantPaymInfo' => [
     'reference'   => $reference,
-    'destination' => 'HEAVY — Alter Ego x' . $qty . ' (test)',
+    'destination' => 'HEAVY — Alter Ego x' . $qty,
   ],
   'redirectUrl' => 'https://he4vy.com/payment-result',
   'webHookUrl'  => 'https://he4vy.com/api/monobank-webhook.php',

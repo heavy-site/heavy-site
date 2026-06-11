@@ -5,7 +5,7 @@ function heavy_event($id) {
   $E = [
     'alter-ego' => [
       'name'        => 'Alter Ego',
-      'date'        => 'May 23, 2026',          // ← live-site canonical (spec said June 23 — confirm)
+      'date'        => 'June 28, 2026',
       'time'        => '18:00 – 22:00',
       'venue'       => 'Gurtok',
       'address'     => 'Нижньоюрківська 31, Київ',
