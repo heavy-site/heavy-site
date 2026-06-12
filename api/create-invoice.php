@@ -26,7 +26,7 @@ $payload = [
   'ccy'    => 980,                                   // UAH
   'merchantPaymInfo' => [
     'reference'   => $reference,
-    'destination' => 'HEAVY — Alter Ego x' . $qty,
+    'destination' => 'HEAVY — Alter Ego Part 2 x' . $qty,
   ],
   'redirectUrl' => 'https://he4vy.com/payment-result',
   'webHookUrl'  => 'https://he4vy.com/api/monobank-webhook.php',

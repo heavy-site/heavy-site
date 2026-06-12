@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HEAVY — Alter Ego</title>
+  <title>HEAVY — Alter Ego Part 2</title>
 
   <!-- ═══════════════════════════════════════════════
        META PIXEL  (Pixel ID + server-side CAPI)
@@ -56,16 +56,16 @@
 
   <style>
     /* ══════════════════════════════════════════════════
-       TOKENS  —  dark chrome / silver metallic
+       TOKENS
     ══════════════════════════════════════════════════ */
     :root {
-      --bg:        #1a1a1d;
-      --fg:        #d4d3d8;
-      --fg-bright: #eeedf2;
-      --silver:    #a8a7b0;
-      --muted:     #6b6a72;
-      --line:      rgba(168,167,176,0.22);
-      --line-soft: rgba(168,167,176,0.10);
+      --bg:        #0D0D0D;
+      --fg:        #F2F2F2;
+      --fg-bright: #F2F2F2;
+      --silver:    #D9D9D9;
+      --muted:     #8C8C8C;
+      --line:      rgba(140,140,140,0.22);
+      --line-soft: rgba(140,140,140,0.10);
 
       --font-display: 'Anton', 'Arial Narrow', Impact, sans-serif;
       --font:         'Saira Condensed', 'Arial Narrow', sans-serif;
@@ -95,13 +95,8 @@
 
     ::selection { background: var(--fg-bright); color: #000; }
 
-    /* Metallic chrome shimmer for display headings */
     .chrome-text {
-      background: linear-gradient(135deg, #8a8990 0%, #d4d3d8 25%, #f0eff5 42%, #a8a7b0 58%, #d4d3d8 75%, #8a8990 100%);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--fg);
     }
 
     a { color: inherit; text-decoration: none; }
@@ -116,7 +111,7 @@
       z-index: 200;
       display: flex;
       align-items: stretch;
-      background: rgba(26,26,29,0.9);
+      background: rgba(13,13,13,0.9);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line);
     }
@@ -172,8 +167,8 @@
     }
     .tab:hover { color: var(--fg); }
     .tab.active {
-      color: #050505;
-      background: linear-gradient(135deg, #a8a7b0, #e0dfe5, #a8a7b0);
+      color: #0D0D0D;
+      background: var(--fg);
     }
 
     .lang {
@@ -219,7 +214,7 @@
     .welcome-stage { position: relative; }
     /* Continuous blurred video spanning hero + description (no seam).
        Visually distinct from the Tickets background (more blur, lighter dim). */
-    .welcome-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #1a1a1d; }
+    .welcome-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0D0D0D; }
     .welcome-bg video {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
@@ -313,7 +308,7 @@
       position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: #232328;
+      background: #262626;
       border: 1px solid var(--line);
     }
     .video-frame iframe {
@@ -330,7 +325,7 @@
       inset: var(--nav-h) 0 0 0;
       z-index: 0;
       overflow: hidden;
-      background: #1a1a1d;
+      background: #0D0D0D;
     }
     #bg-video {
       position: absolute; inset: 0;
@@ -398,7 +393,7 @@
       background-color: #1a1a1a;
       background-image:
         url('event-poster.jpg'),
-        linear-gradient(160deg, #3a3a3a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        linear-gradient(160deg, #262626 0%, #0D0D0D 50%, #0D0D0D 100%);
       background-size: cover;
       background-position: center;
       filter: grayscale(1) contrast(1.05);
@@ -434,7 +429,7 @@
     .event-card:hover .card-details { opacity: 1; transform: translateY(0); }
     .detail-row {
       display: flex; align-items: center; gap: 10px;
-      font-size: 0.95rem; color: rgba(255,255,255,0.85);
+      font-size: 0.95rem; color: rgba(242,242,242,0.85);
     }
     .detail-row .icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
     .detail-row .label {
@@ -447,7 +442,7 @@
       margin-top: 6px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       width: 100%; padding: 14px 20px;
-      background: linear-gradient(135deg, #8a8990, #d4d3d8, #f0eff5, #a8a7b0); color: #050505;
+      background: var(--fg); color: #0D0D0D;
       border: none; cursor: pointer;
       font-family: var(--font-mono);
       font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
@@ -455,7 +450,7 @@
       transition: background 0.25s var(--ease), transform 0.35s 0.18s var(--ease), opacity 0.35s 0.18s var(--ease);
     }
     .event-card:hover .buy-btn { opacity: 1; transform: translateY(0); }
-    .buy-btn:hover { background: linear-gradient(135deg, #6b6a72, #a8a7b0, #d4d3d8, #8a8990); }
+    .buy-btn:hover { background: var(--silver); }
     .buy-btn:active { transform: scale(0.97); }
     .buy-btn svg { width: 14px; height: 14px; transition: transform 0.2s var(--ease); }
     .buy-btn:hover svg { transform: translateX(3px); }
@@ -474,7 +469,7 @@
     .ev-card {
       position: relative;
       cursor: pointer;
-      background: #232328;
+      background: #262626;
       border: 1px solid var(--line-soft);
       overflow: hidden;
       transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
@@ -579,7 +574,7 @@
       padding: 11px 22px;
       transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
     }
-    .lb-download:hover { background: var(--silver); color: #050505; border-color: var(--silver); }
+    .lb-download:hover { background: var(--fg); color: #0D0D0D; border-color: var(--fg); }
     .lb-download svg { width: 16px; height: 16px; }
     .lightbox .lb-close {
       position: absolute; top: 22px; right: 28px;
@@ -608,7 +603,7 @@
     .modal.open { display: flex; animation: viewIn 0.3s var(--ease); }
     .modal-box {
       position: relative; width: 100%; max-width: 460px;
-      background: #202024; border: 1px solid var(--line);
+      background: #262626; border: 1px solid var(--line);
       padding: clamp(26px, 5vw, 44px);
     }
     .modal-close {
@@ -624,14 +619,37 @@
     }
     .co-detail { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px;
       border-bottom: 1px solid var(--line-soft); padding-bottom: 22px; }
-    .co-drow { display: flex; gap: 12px; font-size: 0.95rem; color: rgba(255,255,255,0.85); }
+    .co-drow { display: flex; gap: 12px; font-size: 0.95rem; color: rgba(242,242,242,0.85); }
     .co-drow .k {
       font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em;
       text-transform: uppercase; color: var(--muted); flex: 0 0 64px; padding-top: 3px;
     }
     .co-drow .v { flex: 1; line-height: 1.35; }
     .co-drow .v a { text-decoration: underline; text-underline-offset: 3px; }
-    .co-desc { font-size: 0.95rem; line-height: 1.45; color: rgba(255,255,255,0.7); }
+    .co-poster {
+      width: 100%; aspect-ratio: 9/16; object-fit: cover;
+      border: 1px solid var(--line); margin-bottom: 22px;
+      filter: grayscale(1) contrast(1.05);
+    }
+    .co-desc { font-size: 0.95rem; line-height: 1.45; color: rgba(242,242,242,0.7); margin-bottom: 16px; }
+    .co-lineup { margin-bottom: 8px; }
+    .co-lineup-title {
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .co-lineup-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--line-soft);
+    }
+    .co-lineup-row:last-child { border-bottom: none; }
+    .co-lineup-row a {
+      font-family: var(--font); font-size: 0.95rem; color: var(--fg);
+      text-decoration: none; transition: color 0.2s var(--ease);
+    }
+    .co-lineup-row a:hover { color: var(--silver); text-decoration: underline; text-underline-offset: 3px; }
+    .co-lineup-row .co-lineup-time {
+      font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); letter-spacing: 0.08em;
+    }
 
     .co-form { display: flex; flex-direction: column; gap: 12px; }
     .co-qtyrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
@@ -644,7 +662,7 @@
       width: 44px; background: none; border: none; color: var(--fg); cursor: pointer;
       font-family: var(--font-mono); font-size: 1.2rem; transition: background 0.2s var(--ease), color 0.2s var(--ease);
     }
-    .qty-stepper button:hover { background: var(--silver); color: #050505; }
+    .qty-stepper button:hover { background: var(--fg); color: #0D0D0D; }
     .qty-stepper button:disabled { opacity: 0.3; cursor: not-allowed; background: none; color: var(--fg); }
     .qty-stepper input {
       width: 54px; text-align: center; background: none; border: none;
@@ -652,7 +670,7 @@
       color: var(--fg); font-family: var(--font-mono); font-size: 1rem;
     }
     .co-form input[type=email], .co-form input[type=text] {
-      background: #141417; border: 1px solid var(--line); color: var(--fg);
+      background: #0D0D0D; border: 1px solid var(--line); color: var(--fg);
       font-family: var(--font); font-size: 1rem; padding: 13px 14px; width: 100%;
       transition: border-color 0.2s var(--ease);
     }
@@ -668,13 +686,12 @@
     .co-pay {
       margin-top: 6px; display: flex; align-items: center; justify-content: center;
       width: 100%; padding: 15px;
-      background: linear-gradient(135deg, #8a8990, #d4d3d8, #f0eff5, #a8a7b0);
-      color: #050505; border: none;
+      background: var(--fg); color: #0D0D0D; border: none;
       font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700;
       letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
       transition: background 0.2s var(--ease), opacity 0.2s var(--ease);
     }
-    .co-pay:hover:not(:disabled) { background: linear-gradient(135deg, #6b6a72, #a8a7b0, #d4d3d8, #8a8990); }
+    .co-pay:hover:not(:disabled) { background: var(--silver); }
     .co-pay:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* ══════════════════════════════════════════════════
@@ -688,7 +705,7 @@
     .artist-card {
       position: relative;
       aspect-ratio: 3 / 4;
-      background: #232328;
+      background: #262626;
       overflow: hidden;
       cursor: pointer;
       border: 1px solid var(--line-soft);
@@ -716,7 +733,7 @@
     }
     .artist-card:hover .a-name { opacity: 1; transform: translateY(0); }
     /* When the photo file is missing, show name permanently on a flat panel */
-    .artist-card.no-photo { background: linear-gradient(160deg, #222 0%, #0c0c0c 100%); }
+    .artist-card.no-photo { background: linear-gradient(160deg, #262626 0%, #0D0D0D 100%); }
     .artist-card.no-photo .a-name { opacity: 1; transform: none; }
     /* persistent corner index */
     .artist-card .a-idx {
@@ -738,7 +755,7 @@
     }
     .artist-detail-body .a-info { display: flex; flex-direction: column; gap: 26px; }
     .artist-detail-body .a-desc {
-      font-size: 1.15rem; line-height: 1.5; color: rgba(255,255,255,0.85);
+      font-size: 1.15rem; line-height: 1.5; color: rgba(242,242,242,0.85);
       max-width: 52ch;
     }
     .a-links { display: flex; flex-direction: column; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); max-width: 420px; }
@@ -750,7 +767,7 @@
       color: var(--fg);
       transition: background 0.2s var(--ease), color 0.2s var(--ease), padding-left 0.2s var(--ease);
     }
-    .a-link:hover { background: var(--silver); color: #050505; padding-left: 28px; }
+    .a-link:hover { background: var(--fg); color: #0D0D0D; padding-left: 28px; }
     .a-link .a-link-arrow { margin-left: auto; transition: transform 0.2s var(--ease); }
     .a-link:hover .a-link-arrow { transform: translateX(4px); }
     .a-link svg { width: 20px; height: 20px; flex-shrink: 0; }
@@ -859,7 +876,7 @@
           <div class="card-image" style="background-image: url('event-poster.jpg');"></div>
           <div class="card-gradient"></div>
           <div class="card-info">
-            <h2 class="card-name">Alter Ego</h2>
+            <h2 class="card-name">Alter Ego — Part 2</h2>
             <div class="card-details">
               <div class="detail-row">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -966,10 +983,14 @@
     <div class="modal-box">
       <button class="modal-close" onclick="closeCheckout()" aria-label="Close">✕</button>
 
+      <!-- Event poster -->
+      <img class="co-poster" id="co-poster" src="event-poster.jpg" alt="Event poster" />
+
       <!-- Event detail / geo (filled from /api/event) -->
       <p class="eyebrow" data-i18n="co-eyebrow">Tickets</p>
       <h2 class="co-name" id="co-name">—</h2>
       <div class="co-detail" id="co-detail"></div>
+      <div class="co-lineup" id="co-lineup" style="display:none"></div>
 
       <!-- Purchase form -->
       <form class="co-form" id="co-form" novalidate>
@@ -1113,7 +1134,7 @@
         'ph-email': 'Email', 'ph-first': 'First name', 'ph-last': 'Last name',
         'ph-eyebrow': 'Archive', 'ph-headline': 'Photos', 'back': '← Back', 'download': 'Download',
         'bk-eyebrow': 'Roster', 'bk-headline': 'Booking',
-        'footer': '© 2025 · Alter Ego',
+        'footer': '© 2025 · Alter Ego — Part 2',
       },
       ua: {
         'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг',
@@ -1127,7 +1148,7 @@
         'ph-email': 'Email', 'ph-first': "Ім'я", 'ph-last': 'Прізвище',
         'ph-eyebrow': 'Архів', 'ph-headline': 'Фото', 'back': '← Назад', 'download': 'Завантажити',
         'bk-eyebrow': 'Резиденти', 'bk-headline': 'Букінг',
-        'footer': '© 2025 · Alter Ego',
+        'footer': '© 2025 · Alter Ego — Part 2',
       },
     };
     let currentLang = 'en';
@@ -1481,8 +1502,23 @@
         const venue = ev.venue + (ev.address && !isPlaceholder(ev.address) ? ' · ' + ev.address : '');
         rows.push(detailRow(L['lbl-place'] || 'Place', venue));
         if (ev.mapUrl) rows.push(detailRow(L['lbl-geo'] || 'Map', `<a href="${ev.mapUrl}" target="_blank" rel="noopener">${L['open-map'] || 'Open in maps ↗'}</a>`));
-        if (ev.description && !isPlaceholder(ev.description)) rows.push(`<p class="co-desc">${ev.description}</p>`);
+        const desc = (currentLang === 'ua' && ev.descriptionUa) ? ev.descriptionUa : ev.description;
+        if (desc && !isPlaceholder(desc)) rows.push(`<p class="co-desc">${desc}</p>`);
         document.getElementById('co-detail').innerHTML = rows.join('');
+
+        // Lineup
+        const lineupEl = document.getElementById('co-lineup');
+        if (ev.lineup && ev.lineup.length) {
+          const lineupLabel = currentLang === 'ua' ? 'Артисти' : 'Artists';
+          lineupEl.innerHTML = `<div class="co-lineup-title">${lineupLabel}</div>` +
+            ev.lineup.map(a => `<div class="co-lineup-row">
+              <a href="${a.instagram}" target="_blank" rel="noopener">${a.name}</a>
+              <span class="co-lineup-time">${a.time}</span>
+            </div>`).join('');
+          lineupEl.style.display = 'block';
+        } else {
+          lineupEl.style.display = 'none';
+        }
 
         // quantity bounds + total
         document.getElementById('qty-inc').disabled = false;
