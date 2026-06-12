@@ -597,23 +597,52 @@
     ══════════════════════════════════════════════════ */
     .modal {
       position: fixed; inset: 0; z-index: 600;
-      background: rgba(0,0,0,0.92); backdrop-filter: blur(4px);
-      display: none; align-items: flex-start; justify-content: center;
-      padding: max(24px, 6vh) 18px; overflow-y: auto;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: max(24px, 5vh) 18px; overflow-y: auto;
     }
-    .modal.open { display: flex; animation: viewIn 0.3s var(--ease); }
+    .modal.open { display: flex; animation: modalBgIn 0.3s var(--ease); }
+    .modal.open .modal-box { animation: modalBoxIn 0.42s var(--ease) both; }
+    @keyframes modalBgIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalBoxIn {
+      from { opacity: 0; transform: scale(0.94) translateY(18px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
     .modal-box {
-      position: relative; width: 100%; max-width: 460px;
+      position: relative; width: 100%; max-width: 880px;
+      max-height: 88vh;
       background: #262626; border: 1px solid var(--line);
-      padding: clamp(26px, 5vw, 44px);
+      display: flex; overflow: hidden;
+    }
+    /* Left column — poster (desktop) */
+    .co-left {
+      flex: 0 0 38%;
+      position: relative;
+      background: #0D0D0D;
+      min-height: 100%;
+    }
+    .co-poster {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      filter: grayscale(1) contrast(1.05);
+    }
+    /* Right column — info + form (scrolls internally if tall) */
+    .co-right {
+      flex: 1 1 auto;
+      padding: clamp(26px, 3.5vw, 44px);
+      overflow-y: auto;
+      max-height: 88vh;
     }
     .modal-close {
       position: absolute; top: 14px; right: 16px;
-      background: none; border: none; cursor: pointer;
-      font-family: var(--font-mono); font-size: 1.2rem; color: var(--muted);
-      transition: color 0.2s var(--ease);
+      z-index: 3;
+      background: rgba(13,13,13,0.4); border: none; cursor: pointer;
+      width: 30px; height: 30px; line-height: 1;
+      font-family: var(--font-mono); font-size: 1.1rem; color: var(--fg);
+      transition: color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    .modal-close:hover { color: var(--fg); }
+    .modal-close:hover { color: var(--fg); background: rgba(13,13,13,0.7); }
     .co-name {
       font-family: var(--font-display); font-size: clamp(2rem, 7vw, 3rem);
       text-transform: uppercase; line-height: 0.9; margin: 6px 0 18px;
@@ -627,11 +656,6 @@
     }
     .co-drow .v { flex: 1; line-height: 1.35; }
     .co-drow .v a { text-decoration: underline; text-underline-offset: 3px; }
-    .co-poster {
-      width: 100%; aspect-ratio: 9/16; object-fit: cover;
-      border: 1px solid var(--line); margin-bottom: 22px;
-      filter: grayscale(1) contrast(1.05);
-    }
     .co-desc { font-size: 0.95rem; line-height: 1.45; color: rgba(242,242,242,0.7); margin-bottom: 16px; }
     .co-lineup { margin-bottom: 8px; }
     .co-lineup-title {
@@ -802,6 +826,26 @@
       .artist-detail-body { grid-template-columns: 1fr; }
       .artist-detail-body .a-photo { max-width: 360px; }
       .artist-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+      /* Checkout modal: poster becomes a frosted background, content overlays it */
+      .modal { align-items: flex-start; padding: 0; }
+      .modal-box {
+        display: block; max-width: 100%; min-height: 100vh; max-height: none;
+        border: none;
+      }
+      .co-left {
+        position: absolute; inset: 0; flex: none; z-index: 0;
+      }
+      .co-poster {
+        filter: grayscale(1) contrast(1.05) blur(10px) brightness(0.32);
+      }
+      .co-right {
+        position: relative; z-index: 1; max-height: none;
+        min-height: 100vh;
+        padding: 64px 22px 40px;
+        background: linear-gradient(rgba(13,13,13,0.55), rgba(13,13,13,0.82));
+        -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      }
     }
   </style>
 </head>
@@ -985,37 +1029,41 @@
     <div class="modal-box">
       <button class="modal-close" onclick="closeCheckout()" aria-label="Close">✕</button>
 
-      <!-- Event poster -->
-      <img class="co-poster" id="co-poster" src="event-poster.png" alt="Event poster" />
+      <!-- Left column (desktop) / frosted background (mobile): event poster -->
+      <div class="co-left">
+        <img class="co-poster" id="co-poster" src="event-poster.png" alt="Event poster" />
+      </div>
 
-      <!-- Event detail / geo (filled from /api/event) -->
-      <p class="eyebrow" data-i18n="co-eyebrow">Tickets</p>
-      <h2 class="co-name" id="co-name">—</h2>
-      <div class="co-detail" id="co-detail"></div>
-      <div class="co-lineup" id="co-lineup" style="display:none"></div>
+      <!-- Right column: event info + purchase form -->
+      <div class="co-right">
+        <p class="eyebrow" data-i18n="co-eyebrow">Tickets</p>
+        <h2 class="co-name" id="co-name">—</h2>
+        <div class="co-detail" id="co-detail"></div>
+        <div class="co-lineup" id="co-lineup" style="display:none"></div>
 
-      <!-- Purchase form -->
-      <form class="co-form" id="co-form" novalidate>
-        <div class="co-qtyrow">
-          <span class="co-flabel" data-i18n="co-qty">Quantity</span>
-          <div class="qty-stepper">
-            <button type="button" id="qty-dec" aria-label="Decrease">−</button>
-            <input id="co-qty" type="text" inputmode="numeric" value="1" readonly aria-label="Quantity" />
-            <button type="button" id="qty-inc" aria-label="Increase">+</button>
+        <!-- Purchase form -->
+        <form class="co-form" id="co-form" novalidate>
+          <div class="co-qtyrow">
+            <span class="co-flabel" data-i18n="co-qty">Quantity</span>
+            <div class="qty-stepper">
+              <button type="button" id="qty-dec" aria-label="Decrease">−</button>
+              <input id="co-qty" type="text" inputmode="numeric" value="1" readonly aria-label="Quantity" />
+              <button type="button" id="qty-inc" aria-label="Increase">+</button>
+            </div>
           </div>
-        </div>
-        <input id="co-email" type="email" autocomplete="email" data-i18n-ph="ph-email" placeholder="Email" />
-        <input id="co-first" type="text" autocomplete="given-name" data-i18n-ph="ph-first" placeholder="First name" />
-        <input id="co-last"  type="text" autocomplete="family-name" data-i18n-ph="ph-last" placeholder="Last name" />
-        <div class="co-total">
-          <span data-i18n="co-total">Total</span>
-          <span id="co-total-val">—</span>
-        </div>
-        <p class="co-error" id="co-error" hidden></p>
-        <button class="co-pay" id="co-pay" type="submit" disabled>
-          <span data-i18n="co-pay">Pay</span>
-        </button>
-      </form>
+          <input id="co-email" type="email" autocomplete="email" data-i18n-ph="ph-email" placeholder="Email" />
+          <input id="co-first" type="text" autocomplete="given-name" data-i18n-ph="ph-first" placeholder="First name" />
+          <input id="co-last"  type="text" autocomplete="family-name" data-i18n-ph="ph-last" placeholder="Last name" />
+          <div class="co-total">
+            <span data-i18n="co-total">Total</span>
+            <span id="co-total-val">—</span>
+          </div>
+          <p class="co-error" id="co-error" hidden></p>
+          <button class="co-pay" id="co-pay" type="submit" disabled>
+            <span data-i18n="co-pay">Pay</span>
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
