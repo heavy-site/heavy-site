@@ -17,6 +17,11 @@ require_once __DIR__ . '/vendor/autoload.php';
  * @return string         PDF document as a binary string
  */
 function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
+  // TCPDF with embedded DejaVu Sans is memory-hungry; on shared hosting a low
+  // memory_limit triggers an UNCATCHABLE fatal that would kill the webhook
+  // before the Resend call. Raise it defensively (no-op if already higher).
+  @ini_set('memory_limit', '256M');
+
   // Page: 210 × 141 mm (A4 width, ticket height) — mirrors the old Node layout.
   $pdf = new \TCPDF('L', 'mm', [210, 141], true, 'UTF-8', false);
   $pdf->SetCreator('HEAVY');
