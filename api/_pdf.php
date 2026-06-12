@@ -75,12 +75,12 @@ function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
   $pdf->SetLineStyle(['dash' => 0]);
 
   // ── Event poster image (right side) ──
-  $posterPath = __DIR__ . '/../event-poster.jpg';
+  $posterPath = __DIR__ . '/../event-poster.png';
   if (is_file($posterPath)) {
     $imgW = 58;
     $imgH = 100;
     $imgX = $sepX + ((68 - $imgW) / 2);
-    $pdf->Image($posterPath, $imgX, 27, $imgW, $imgH, 'JPEG');
+    $pdf->Image($posterPath, $imgX, 27, $imgW, $imgH, 'PNG');
   }
 
   // ── Footer ──
