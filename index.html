@@ -6,7 +6,7 @@
   <title>HEAVY — Alter Ego Part 2</title>
 
   <!-- ═══════════════════════════════════════════════
-       META PIXEL  (Pixel ID + server-side CAPI)
+       META PIXEL
   ═══════════════════════════════════════════════════ -->
   <script>
     !function(f,b,e,v,n,t,s){
@@ -19,8 +19,8 @@
       'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '2185976098902803');
 
-    /* ── Shared tracking helper (Pixel + CAPI, deduped) ─────── */
-    function metaTrack(eventName, customData, userData) {
+    /* ── Shared tracking helper (Pixel, deduped) ─────── */
+    function metaTrack(eventName, customData) {
       customData = customData || {};
       const eventId = (crypto.randomUUID
         ? crypto.randomUUID()
@@ -28,18 +28,6 @@
       if (typeof fbq !== 'undefined') {
         fbq('track', eventName, customData, { eventID: eventId });
       }
-      fetch('/capi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-        body: JSON.stringify({
-          event_name: eventName,
-          event_id: eventId,
-          event_source_url: window.location.href,
-          custom_data: customData,
-          user_data: userData || {},
-        }),
-      }).catch(function (err) { console.warn('CAPI send failed:', err); });
     }
     metaTrack('PageView');
   </script>
@@ -1172,11 +1160,12 @@
     }
 
     /* ════════════════════════════════════════════════════════
-       TAB NAVIGATION
+       TAB NAVIGATION  (pushState → /tickets, /photos, /booking)
     ════════════════════════════════════════════════════════ */
-    function showTab(name) {
-      // Always reset detail views so a tab opens at its ROOT screen
-      // (event list / artist list), never the previously-opened detail.
+    const TAB_PATHS = { welcome: '/', tickets: '/tickets', photos: '/photos', booking: '/booking' };
+    const PATH_TO_TAB = { '/': 'welcome', '/tickets': 'tickets', '/photos': 'photos', '/booking': 'booking' };
+
+    function showTab(name, pushState) {
       closeGallery();
       closeArtist();
       closeLightbox();
@@ -1185,8 +1174,17 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
       document.getElementById('view-' + name).classList.add('active');
       window.scrollTo({ top: 0, behavior: 'auto' });
+
+      if (pushState !== false && TAB_PATHS[name] !== undefined) {
+        history.pushState({ tab: name }, '', TAB_PATHS[name]);
+      }
       metaTrack('ViewContent', { content_name: 'tab:' + name });
     }
+
+    window.addEventListener('popstate', function (e) {
+      var tab = (e.state && e.state.tab) ? e.state.tab : PATH_TO_TAB[location.pathname] || 'welcome';
+      showTab(tab, false);
+    });
 
     /* ════════════════════════════════════════════════════════
        SCROLL REVEAL  (shared across tabs)
@@ -1643,8 +1641,16 @@
     buildVideoFeed();
     buildEventList();
     buildArtists();
-    observeReveals(document.getElementById('view-welcome')); // incl. .welcome-desc
+    observeReveals(document.getElementById('view-welcome'));
     setLang('en');
+
+    // Open the tab matching the URL path (e.g. /tickets → tickets tab).
+    var initTab = PATH_TO_TAB[location.pathname] || 'welcome';
+    if (initTab !== 'welcome') {
+      showTab(initTab, false);
+    } else {
+      history.replaceState({ tab: 'welcome' }, '', '/');
+    }
   </script>
 
 </body>

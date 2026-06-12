@@ -19,6 +19,11 @@
   RewriteRule ^api/verify-ticket/use/?$ /api/verify-ticket.php   [L,QSA]
   RewriteRule ^api/verify-ticket/?$     /api/verify-ticket.php   [L,QSA]
 
+  # SPA tab routes → index.html (JS reads path and opens the tab)
+  RewriteRule ^tickets/?$              /index.html                [L,QSA]
+  RewriteRule ^photos/?$               /index.html                [L,QSA]
+  RewriteRule ^booking/?$              /index.html                [L,QSA]
+
   # Pretty paths
   RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
   RewriteRule ^verify/?$               /verify.html              [L,QSA]
