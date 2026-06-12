@@ -547,11 +547,12 @@
     }
     .lightbox img {
       max-width: 92vw; max-height: 80vh; object-fit: contain;
-      transition: filter 0.3s var(--ease);
-      touch-action: pan-y; /* allow vertical scroll/zoom; we handle horizontal swipe */
+      transition: filter 0.3s var(--ease), transform 0.35s var(--ease), opacity 0.35s var(--ease);
+      touch-action: pan-y;
     }
-    /* Blurred placeholder while the sharp image loads (never a blank state) */
     .lightbox img.lb-loading { filter: blur(12px); }
+    .lightbox img.lb-slide-left  { transform: translateX(-60px); opacity: 0; }
+    .lightbox img.lb-slide-right { transform: translateX(60px); opacity: 0; }
     /* Download button — centered directly below the photo */
     .lb-download {
       display: inline-flex; align-items: center; gap: 10px;
@@ -1381,28 +1382,44 @@
       return lbPreload[url];
     }
 
-    function showLbImage(i) {
+    function showLbImage(i, slideDir) {
       const img = document.getElementById('lb-img');
       const p = currentPhotos[i];
       const url = lbLargeUrl(p);
 
       updateDownloadLink(i);
 
-      const hi = preloadLarge(i);
-      if (hi.complete && hi.naturalWidth > 0) {
-        // Already cached → show sharp immediately, no placeholder flash.
-        img.classList.remove('lb-loading');
-        img.src = url;
-      } else {
-        // Instant placeholder: the grid thumb is already loaded; show it blurred,
-        // then swap to the sharp large image the moment it finishes.
-        img.classList.add('lb-loading');
-        img.src = p.thumb;
-        hi.onload  = () => { if (lbIndex === i) { img.src = url; img.classList.remove('lb-loading'); } };
-        hi.onerror = () => { if (lbIndex === i) { img.classList.remove('lb-loading'); } }; // keep thumb
+      function applyImage() {
+        const hi = preloadLarge(i);
+        if (hi.complete && hi.naturalWidth > 0) {
+          img.classList.remove('lb-loading');
+          img.src = url;
+        } else {
+          img.classList.add('lb-loading');
+          img.src = p.thumb;
+          hi.onload  = () => { if (lbIndex === i) { img.src = url; img.classList.remove('lb-loading'); } };
+          hi.onerror = () => { if (lbIndex === i) { img.classList.remove('lb-loading'); } };
+        }
       }
 
-      // Prefetch neighbours so ‹ › / swipe feel instant.
+      if (slideDir) {
+        var outClass = slideDir > 0 ? 'lb-slide-left' : 'lb-slide-right';
+        var inClass  = slideDir > 0 ? 'lb-slide-right' : 'lb-slide-left';
+        img.classList.add(outClass);
+        setTimeout(function () {
+          applyImage();
+          img.classList.remove(outClass);
+          img.classList.add(inClass);
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              img.classList.remove(inClass);
+            });
+          });
+        }, 180);
+      } else {
+        applyImage();
+      }
+
       preloadLarge((i + 1) % currentPhotos.length);
       preloadLarge((i - 1 + currentPhotos.length) % currentPhotos.length);
     }
@@ -1436,7 +1453,7 @@
     function lbStep(dir) {
       if (!currentPhotos.length) return;
       lbIndex = (lbIndex + dir + currentPhotos.length) % currentPhotos.length;
-      showLbImage(lbIndex);
+      showLbImage(lbIndex, dir);
     }
     document.addEventListener('keydown', e => {
       if (!document.getElementById('lightbox').classList.contains('open')) return;
