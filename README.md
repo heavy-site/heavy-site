@@ -1,124 +1,78 @@
-# HEAVY / jorasite
+# HEAVY — he4vy.com
 
-Event/rave site for **jorasite.girafi.keenetic.name** — a Node/Express app
-(static brutalist front-end + Meta Conversions API proxy + pCloud photo proxy)
-served behind Nginx in an unprivileged Ubuntu 24.04 LXC container.
+Event/rave site for **he4vy.com** — static front-end + PHP backend
+hosted on cPanel (shared hosting).
 
 ## Architecture
 
 ```
-Internet
-  → Keenetic router (TLS termination + Let's Encrypt, reverse proxy)
-    → LXC container 192.168.2.21
-      → Nginx :80            (single public entry point)
-        → Node app 127.0.0.1:3000   (systemd service, user: jorasite)
+Internet → cPanel (Apache/LiteSpeed, TLS)
+             ├── Static files: index.html, payment-result.html, verify.html
+             └── PHP backend:  api/*.php
 ```
-
-- External HTTPS terminates on **Keenetic**; inside the container Nginx speaks HTTP.
-- The Node backend binds to **127.0.0.1 only** — never reachable directly.
-- `X-Forwarded-Proto` / `X-Forwarded-For` are passed through; the app treats the
-  original scheme as HTTPS.
 
 ## Layout
 
 ```
-/opt/jorasite/
-  app/            # application code (rsynced; runtime user: jorasite)
-  deploy/         # provisioning + deploy/update scripts, systemd unit, logrotate, sudoers
-  nginx/          # nginx site + http-level config
-  .env            # secrets (chmod 600, NOT in git)
-  .env.example    # template
-  README.md
+public_html/
+  index.html              # main SPA (welcome, tickets, photos, booking)
+  payment-result.html     # post-payment status page
+  verify.html             # door-check QR verification page
+  .htaccess               # rewrites extensionless API paths → PHP
+  api/
+    _mono.php             # shared Monobank helpers + config loader
+    _event.php            # canonical event info
+    _tickets.php          # ticket issuance + Resend email
+    create-invoice.php    # Monobank invoice creation
+    check-status.php      # payment status polling
+    monobank-webhook.php  # Monobank payment webhook (ECDSA verified)
+    verify-ticket.php     # door QR scan (GET = check, POST = check-in)
+    event.php             # event info for checkout modal
+    photos.php            # pCloud photo proxy
+    download.php          # photo download
+    test-resend.php       # Resend integration test
+    vendor/               # PHP deps (endroid/qr-code)
+    composer.json
+  monobank_config.sample.php  # config template (copy outside web root)
 ```
 
-## Users & privileges
+## Secrets
 
-- **jorasite** — system user, no login shell, runs the app. **No sudo.**
-- **jora** — admin/deploy user (SSH). Has general sudo, plus scoped NOPASSWD
-  rules (`/etc/sudoers.d/jorasite`) for `systemctl {start,stop,restart,reload} jorasite`,
-  `nginx -t`, and `systemctl reload/restart nginx` so deploys need no password.
-- `jora` is in the `jorasite` group so it can rsync into `/opt/jorasite`
-  (setgid, group-writable). Docker is **not** used — avoids the docker-group=root risk.
+Secrets live in `monobank_config.php` **outside the web root**:
 
-## First-time setup (already done; here for reference)
-
-```bash
-# On the server, as a sudoer:
-sudo bash /opt/jorasite/deploy/01-provision.sh   # user, dirs, Node 22, Nginx
-# (rsync the code up — see Deploy below)
-sudo bash /opt/jorasite/deploy/02-configure.sh   # systemd unit, nginx, sudoers, logrotate, start
+```
+/home3/hevycom/monobank_config.php   (chmod 600)
 ```
 
-Secrets live in `/opt/jorasite/.env` (chmod 600, owner jorasite). Never commit it.
+Required constants:
+- `MONOBANK_TOKEN` — Monobank acquiring token
+- `RESEND_API_KEY` — Resend email API key (`re_...`)
+- `MAIL_FROM` — verified sender, e.g. `HEAVY <tickets@he4vy.com>`
 
-## Deploy / update the code
+Optional:
+- `TICKET_SECRET` — HMAC signing key (auto-generated if unset)
+- `MONO_DATA_DIR` — order/ticket store path
 
-From your Mac (project root):
+## Payment flow
 
-```bash
-ssh-add ~/.ssh/jora_ed25519     # optional: cache key passphrase
-./deploy/deploy.sh              # rsync + remote npm ci + restart + healthcheck
-```
+1. User fills form → `POST /api/create-invoice` → Monobank invoice
+2. User pays on Monobank → webhook `POST /api/monobank-webhook`
+3. Webhook verifies ECDSA signature → issues tickets → emails QR codes via Resend
+4. User polls `/api/check-status` → sees success
+5. Door scan: `/verify?t=<token>` → `GET /api/verify-ticket` → `POST /api/verify-ticket/use`
 
-`deploy.sh` pushes the app to `/opt/jorasite/app`, refreshes deploy/nginx files,
-then runs `update.sh` on the server.
+## DNS (Resend email)
 
-To update **only** on the server (e.g. after editing on the box):
+Configured in cPanel Zone Editor for `he4vy.com`:
+- `resend._domainkey` TXT (DKIM)
+- `send` MX → `feedback-smtp.eu-west-1.amazonses.com`
+- `send` TXT SPF `v=spf1 include:amazonses.com ~all`
+- `_dmarc` TXT `v=DMARC1; p=none;`
 
-```bash
-ssh jora@192.168.2.21 'bash /opt/jorasite/deploy/update.sh'
-```
+## Deploy
 
-### Change a background video / media
-Media (`background.mp4`, `welcome-bg.mp4`, posters, `logo.png`, artist photos)
-live in `app/`. Replace locally and re-run `./deploy/deploy.sh`.
+Push to GitHub → pull on cPanel via Git Version Control, or upload via File Manager.
 
-### Change the Nginx config
-Edit `deploy/nginx/*.conf`, then on the server:
-```bash
-sudo bash /opt/jorasite/deploy/02-configure.sh   # re-installs config + reloads
-```
+## Testing
 
-## Service control
-
-```bash
-sudo systemctl status jorasite
-sudo systemctl restart jorasite
-journalctl -u jorasite -f          # app logs (journald)
-```
-
-Autostart on boot is enabled for both `jorasite` and `nginx`.
-
-## Healthcheck
-
-```bash
-curl -fsS http://127.0.0.1:3000/healthz        # backend (local only)
-curl -fsS -H 'Host: jorasite.girafi.keenetic.name' http://127.0.0.1/healthz   # via Nginx
-```
-External: open `https://jorasite.girafi.keenetic.name/healthz`.
-
-## Logs
-
-- Nginx: `/var/log/nginx/jorasite.access.log`, `jorasite.error.log`
-  (rotated weekly, 8 kept — `/etc/logrotate.d/jorasite`).
-- App: `journalctl -u jorasite` (journald, size-capped).
-
-## Firewall (ufw, default-deny inbound)
-
-- `22/tcp`  ← `192.168.2.0/24` (trusted LAN only)
-- `80/tcp`  ← `192.168.2.0/24` (Keenetic / LAN only)
-- Everything else (app `:3000`, Postgres `:5432`, etc.) is **not** reachable
-  from outside the LAN.
-
-```bash
-sudo ufw status verbose
-```
-
-## Verify a healthy deploy
-
-```bash
-sudo ss -tulpn                 # 3000 should be 127.0.0.1 only; 80 via nginx
-curl -fsS http://127.0.0.1:3000/healthz
-curl -I  -H 'Host: jorasite.girafi.keenetic.name' http://127.0.0.1/
-systemctl is-enabled jorasite nginx
-```
+Test Resend: `https://he4vy.com/api/test-resend.php?to=your@email.com`
