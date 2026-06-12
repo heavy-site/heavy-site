@@ -47,11 +47,10 @@ function ticket_load($id) { $p = ticket_path($id); return is_file($p) ? json_dec
 function make_qr_png($text) {
   try {
     require_once __DIR__ . '/vendor/autoload.php';
-    $qr = new \Endroid\QrCode\QrCode(
-      data: $text,
-      errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::Medium,
-      size: 420, margin: 16
-    );
+    $qr = new \Endroid\QrCode\QrCode($text);
+    $qr->setErrorCorrectionLevel(\Endroid\QrCode\ErrorCorrectionLevel::Medium);
+    $qr->setSize(420);
+    $qr->setMargin(16);
     return (new \Endroid\QrCode\Writer\PngWriter())->write($qr)->getString();
   } catch (\Throwable $e) {
     error_log('[tickets] QR generation failed: ' . $e->getMessage());
