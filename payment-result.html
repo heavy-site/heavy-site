@@ -4,6 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HEAVY — Payment</title>
+  <!-- Meta Pixel -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2185976098902803');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=2185976098902803&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -92,7 +108,14 @@
         const r = await fetch('/api/check-status?' + lookup);
         const d = await r.json();
         const s = d.status;
-        if (s === 'success') return render('success');
+        if (s === 'success') {
+          if (typeof fbq !== 'undefined' && !window._fbPurchaseFired) {
+            window._fbPurchaseFired = true;
+            var val = d.amount ? (d.amount / 100) : 0;
+            fbq('track', 'Purchase', { value: val, currency: 'UAH' });
+          }
+          return render('success');
+        }
         if (s === 'failure' || s === 'expired' || s === 'reversed') return render('failed');
         return 'pending'; // created / processing / hold → keep polling
       } catch (e) { return 'pending'; }
