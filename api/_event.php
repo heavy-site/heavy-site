@@ -9,6 +9,7 @@ function heavy_event($id) {
       'time'        => '18:00 – 22:00',
       'venue'       => 'Gurtok',
       'address'     => 'Нижньоюрківська 31, Київ',
+      'geo'         => '50.466564192974495,30.499941806080255', // map pin; address shown as-is
       'description' => 'The first of the continuation of the Alter Ego event series, in which we continue to immerse ourselves in heavy electronic music.',
       'descriptionUa' => 'Перша подія продовження серії Alter Ego, в якій ми продовжуємо занурюватись у важку електронну музику.',
       'priceUah'    => 1,
@@ -23,8 +24,9 @@ function heavy_event($id) {
   if (!isset($E[$id])) return null;
   $ev = $E[$id];
   $ev['id'] = $id;
-  $ev['mapUrl'] = $ev['address'] !== ''
-    ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($ev['address'])
+  $geoQuery = !empty($ev['geo']) ? $ev['geo'] : $ev['address'];
+  $ev['mapUrl'] = $geoQuery !== ''
+    ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($geoQuery)
     : '';
   $ev['maxQty'] = 10;
   return $ev;
