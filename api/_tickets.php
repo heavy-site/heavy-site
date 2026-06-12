@@ -7,6 +7,7 @@
 ─────────────────────────────────────────────────────────────── */
 require_once __DIR__ . '/_mono.php';
 require_once __DIR__ . '/_event.php';
+require_once __DIR__ . '/_pdf.php';
 
 define('PUBLIC_BASE', 'https://he4vy.com');
 
@@ -101,6 +102,18 @@ function send_ticket_email($order, $tickets, $ev) {
   foreach ($tickets as $t) {
     $png = make_qr_png(PUBLIC_BASE . '/verify?t=' . rawurlencode($t['token']));
     $label = ($ua ? 'КВИТОК' : 'TICKET') . ' ' . $t['index'] . ' / ' . $t['of'];
+
+    // Printable PDF ticket (event data + buyer info + QR). Attached per ticket.
+    try {
+      $pdf = make_ticket_pdf($t, $order, $ev, $png);
+      if ($pdf !== '' && $pdf !== null) {
+        $attachments[] = ['filename' => 'ticket-' . $t['index'] . '.pdf', 'content' => base64_encode($pdf), 'content_type' => 'application/pdf'];
+      }
+    } catch (\Throwable $e) {
+      error_log('[tickets] PDF generation failed for ' . $t['id'] . ': ' . $e->getMessage());
+      if (function_exists('wlog')) wlog('PDF FAIL ' . $t['id'] . ': ' . $e->getMessage());
+    }
+
     if ($png !== null) {
       $cid = 'qr-' . $t['id'];
       $attachments[] = ['filename' => 'ticket-' . $t['index'] . '.png', 'content' => base64_encode($png), 'content_type' => 'image/png', 'content_id' => $cid];
@@ -112,8 +125,8 @@ function send_ticket_email($order, $tickets, $ev) {
   }
 
   $L = $ua
-    ? ['subj' => 'Ваші квитки — ' . $ev['name'], 'hi' => 'Дякуємо за покупку! Ваші квитки нижче.', 'date' => 'Дата', 'time' => 'Час', 'venue' => 'Місце', 'maplbl' => 'Мапа', 'map' => 'Відкрити в картах ↗', 'foot' => 'Покажіть кожен QR на вході. Кожен квиток дійсний один раз.']
-    : ['subj' => 'Your tickets — ' . $ev['name'], 'hi' => 'Thanks for your purchase! Your tickets are below.', 'date' => 'Date', 'time' => 'Time', 'venue' => 'Venue', 'maplbl' => 'Map', 'map' => 'Open in maps ↗', 'foot' => 'Show each QR at the entrance. Each ticket is valid once.'];
+    ? ['subj' => 'Ваші квитки — ' . $ev['name'], 'hi' => 'Дякуємо за покупку! Ваші квитки нижче.', 'date' => 'Дата', 'time' => 'Час', 'venue' => 'Місце', 'maplbl' => 'Мапа', 'map' => 'Відкрити в картах ↗', 'pdf' => 'PDF-квиток додано до листа — його можна роздрукувати.', 'foot' => 'Покажіть кожен QR на вході. Кожен квиток дійсний один раз.']
+    : ['subj' => 'Your tickets — ' . $ev['name'], 'hi' => 'Thanks for your purchase! Your tickets are below.', 'date' => 'Date', 'time' => 'Time', 'venue' => 'Venue', 'maplbl' => 'Map', 'map' => 'Open in maps ↗', 'pdf' => 'A PDF ticket is attached — you can print it.', 'foot' => 'Show each QR at the entrance. Each ticket is valid once.'];
 
   $addr = $ev['address'] !== '' ? ' · ' . htmlspecialchars($ev['address']) : '';
   $rows = '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['date'] . '</td><td>' . htmlspecialchars($ev['date']) . '</td></tr>'
@@ -126,6 +139,7 @@ function send_ticket_email($order, $tickets, $ev) {
         . '<p style="color:#555;margin:0 0 16px">' . $L['hi'] . '</p>'
         . '<table style="font-size:14px;color:#333;border-collapse:collapse">' . $rows . '</table>'
         . '<hr style="border:none;border-top:1px solid #eee;margin:20px 0"/>' . $qrBlocks
+        . '<p style="font-size:12px;color:#999;text-align:center">' . $L['pdf'] . '</p>'
         . '<p style="font-size:12px;color:#999;text-align:center">' . $L['foot'] . '</p></div>';
 
   $payload = ['from' => $from, 'to' => [$to], 'subject' => $L['subj'], 'html' => $html, 'attachments' => $attachments];
