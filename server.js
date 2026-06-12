@@ -19,8 +19,9 @@ const crypto     = require('crypto');
 const path       = require('path');
 const fs         = require('fs');
 const QRCode     = require('qrcode');
-const nodemailer = require('nodemailer');
 const jwt        = require('jsonwebtoken');
+const { Resend } = require('resend');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 require('dotenv').config();
 
 const app  = express();
@@ -331,13 +332,10 @@ const TICKET_PRIVATE_KEY = loadKey(process.env.TICKET_PRIVATE_KEY, process.env.T
 const TICKET_PUBLIC_KEY  = loadKey(process.env.TICKET_PUBLIC_KEY,  process.env.TICKET_PUBLIC_KEY_FILE);
 const TICKET_TTL = process.env.TICKET_TTL || '180d';
 const MAX_QTY = 10;
-const SMTP = {
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  user: process.env.SMTP_USER,
-  pass: process.env.SMTP_PASS,
-  from: process.env.MAIL_FROM || process.env.SMTP_USER,
-};
+// ── Resend email config ──────────────────────────────────────
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const MAIL_FROM = process.env.MAIL_FROM || 'HEAVY <onboarding@resend.dev>';
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 // Public event display info — SINGLE SOURCE OF TRUTH for the checkout modal,
 // the QR tickets, and the email. Fill in the <<PLACEHOLDER>> values.
@@ -574,7 +572,7 @@ async function ticketQrBuffer(token) {
   return QRCode.toBuffer(url, { errorCorrectionLevel: 'M', margin: 2, width: 400 });
 }
 
-function smtpReady() { return !!(SMTP.host && SMTP.user && SMTP.pass); }
+function resendReady() { return !!resend; }
 
 // Email copy in the buyer's language (UA default — Kyiv audience).
 const MAIL_I18N = {
@@ -584,6 +582,7 @@ const MAIL_I18N = {
     date: 'Дата', time: 'Час', venue: 'Місце', map: 'Мапа', openMap: 'Відкрити в картах ↗',
     ticket: (i, of) => `КВИТОК ${i} / ${of}`,
     footer: 'Покажіть кожен QR-код на вході. Кожен квиток дійсний один раз.',
+    pdfNote: 'PDF-квиток з QR-кодом додано до цього листа.',
   },
   en: {
     subject: n => `Your tickets — ${n}`,
@@ -591,33 +590,92 @@ const MAIL_I18N = {
     date: 'Date', time: 'Time', venue: 'Venue', map: 'Map', openMap: 'Open location in maps ↗',
     ticket: (i, of) => `TICKET ${i} / ${of}`,
     footer: 'Show each QR at the entrance. Each ticket is valid once.',
+    pdfNote: 'A PDF ticket with QR code is attached to this email.',
   },
 };
 // Hide unfilled <<PLACEHOLDER>> values so they never appear in the email.
 function shown(v) { return (v && String(v).indexOf('<<') !== 0) ? String(v) : ''; }
 
+// ── PDF Ticket Generator ────────────────────────────────────
+async function generateTicketPdf(ticket, order, ev) {
+  const doc = await PDFDocument.create();
+  const helvetica = await doc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const W = 595.28, H = 400;
+  const page = doc.addPage([W, H]);
+  const black = rgb(0, 0, 0), gray = rgb(0.4, 0.4, 0.4), lightGray = rgb(0.85, 0.85, 0.85);
+
+  // Background
+  page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: rgb(1, 1, 1) });
+
+  // Header bar
+  page.drawRectangle({ x: 0, y: H - 60, width: W, height: 60, color: black });
+  page.drawText('HEAVY', { x: 30, y: H - 42, size: 28, font: helveticaBold, color: rgb(1, 1, 1) });
+  page.drawText('EVENT TICKET', { x: W - 160, y: H - 40, size: 14, font: helvetica, color: rgb(0.7, 0.7, 0.7) });
+
+  // Event name
+  const evName = (ev.name || 'Event').toUpperCase();
+  page.drawText(evName, { x: 30, y: H - 95, size: 24, font: helveticaBold, color: black });
+
+  // Event details
+  let y = H - 125;
+  const detail = (label, value) => {
+    if (!value) return;
+    page.drawText(label, { x: 30, y, size: 10, font: helveticaBold, color: gray });
+    page.drawText(value, { x: 110, y, size: 10, font: helvetica, color: black });
+    y -= 18;
+  };
+  detail('DATE', shown(ev.date));
+  detail('TIME', shown(ev.time));
+  detail('VENUE', shown(ev.venue));
+  detail('ADDRESS', shown(ev.address));
+  detail('GUEST', `${order.firstName} ${order.lastName}`);
+  detail('EMAIL', order.email);
+  detail('TICKET', `${ticket.index} / ${ticket.of}`);
+  detail('TICKET ID', ticket.id.slice(0, 8).toUpperCase());
+
+  // Dashed separator
+  const sepX = W - 190;
+  for (let dy = H - 65; dy > 10; dy -= 6) {
+    page.drawLine({ start: { x: sepX, y: dy }, end: { x: sepX, y: dy - 3 }, thickness: 1, color: lightGray });
+  }
+
+  // QR code
+  const qrPng = await ticketQrBuffer(ticket.token);
+  const qrImage = await doc.embedPng(qrPng);
+  const qrSize = 150;
+  const qrX = sepX + (190 - qrSize) / 2;
+  page.drawImage(qrImage, { x: qrX, y: H - 80 - qrSize, width: qrSize, height: qrSize });
+  page.drawText('SCAN AT ENTRANCE', { x: sepX + 28, y: H - 80 - qrSize - 16, size: 8, font: helveticaBold, color: gray });
+
+  // Footer
+  page.drawLine({ start: { x: 30, y: 35 }, end: { x: sepX - 15, y: 35 }, thickness: 0.5, color: lightGray });
+  page.drawText('Show this ticket (printed or on screen) at the entrance. Each ticket is valid once.', {
+    x: 30, y: 18, size: 7.5, font: helvetica, color: gray,
+  });
+
+  return Buffer.from(await doc.save());
+}
+
 async function sendTicketEmail(order, ticketRecs, ev) {
-  if (!smtpReady()) {
-    console.warn('SMTP not configured — email skipped. Tickets stored & valid:', ticketRecs.map(t => t.id).join(', '));
+  if (!resendReady()) {
+    console.warn('RESEND_API_KEY not set — email skipped. Tickets stored & valid:', ticketRecs.map(t => t.id).join(', '));
     return;
   }
-  const T = MAIL_I18N[order.lang === 'en' ? 'en' : 'ua'];  // default Ukrainian
-  const transporter = nodemailer.createTransport({
-    host: SMTP.host, port: SMTP.port, secure: SMTP.port === 465,
-    auth: { user: SMTP.user, pass: SMTP.pass },
-  });
+  const T = MAIL_I18N[order.lang === 'en' ? 'en' : 'ua'];
   const mapUrl = eventMapUrl(ev);
   const date = shown(ev.date), time = shown(ev.time), venue = shown(ev.venue),
         address = shown(ev.address), description = shown(ev.description);
   const attachments = [];
   let qrBlocks = '';
   for (const t of ticketRecs) {
+    const pdfBuffer = await generateTicketPdf(t, order, ev);
+    attachments.push({ filename: `ticket-${t.index}.pdf`, content: pdfBuffer });
     const png = await ticketQrBuffer(t.token);
-    const cid = `qr-${t.id}@jorasite`;
-    attachments.push({ filename: `ticket-${t.index}.png`, content: png, cid });
+    const b64 = png.toString('base64');
     qrBlocks += `<div style="margin:22px 0;text-align:center">
       <div style="font:600 13px monospace;color:#666;letter-spacing:.1em">${T.ticket(t.index, t.of)}</div>
-      <img src="cid:${cid}" width="240" height="240" alt="${T.ticket(t.index, t.of)}" style="margin-top:8px;border:1px solid #eee"/>
+      <img src="data:image/png;base64,${b64}" width="200" height="200" alt="${T.ticket(t.index, t.of)}" style="margin-top:8px;border:1px solid #eee"/>
     </div>`;
   }
   const row = (k, v) => v ? `<tr><td style="padding:3px 10px 3px 0;color:#888">${k}</td><td>${v}</td></tr>` : '';
@@ -633,14 +691,23 @@ async function sendTicketEmail(order, ticketRecs, ev) {
     ${description ? `<p style="font-size:14px;line-height:1.5;color:#444;margin-top:14px">${description}</p>` : ''}
     <hr style="border:none;border-top:1px solid #eee;margin:22px 0"/>
     ${qrBlocks}
+    <p style="font-size:12px;color:#999;text-align:center">${T.pdfNote}</p>
     <p style="font-size:12px;color:#999;text-align:center">${T.footer}</p>
   </div>`;
-  await transporter.sendMail({
-    from: SMTP.from, to: order.email,
+  const { data, error } = await resend.emails.send({
+    from: MAIL_FROM, to: [order.email],
     subject: T.subject(ev.name || 'Event'),
-    html, attachments,
+    html,
+    attachments: attachments.map(a => ({
+      filename: a.filename,
+      content: a.content,
+    })),
   });
-  console.log(`✉  Emailed ${ticketRecs.length} ticket(s) to ${order.email} [${order.lang || 'ua'}]`);
+  if (error) {
+    console.error('✗ Resend email failed:', JSON.stringify(error));
+    throw new Error(`Resend error: ${error.message || JSON.stringify(error)}`);
+  }
+  console.log(`✉  Emailed ${ticketRecs.length} ticket(s) to ${order.email} [${order.lang || 'ua'}] (Resend id: ${data?.id})`);
 }
 
 async function issueTickets(order) {
@@ -699,6 +766,41 @@ app.get('/payment-result', (req, res) => res.sendFile(path.join(__dirname, 'paym
 // Door-scan verification page (QR codes point here).
 app.get('/verify', (req, res) => res.sendFile(path.join(__dirname, 'verify.html')));
 
+// ── Resend test endpoint ─────────────────────────────────────
+// GET /api/test-email?to=you@example.com — sends a minimal test email to verify
+// Resend is working. Returns the full API response for debugging.
+app.get('/api/test-email', async (req, res) => {
+  const to = req.query.to;
+  if (!to) return res.status(400).json({ ok: false, error: 'Missing ?to= query parameter' });
+  if (!resendReady()) return res.status(500).json({ ok: false, error: 'RESEND_API_KEY not configured' });
+  console.log(`[test-email] Sending test to ${to} from ${MAIL_FROM}`);
+  try {
+    const ev = EVENTS_INFO['alter-ego'] || {};
+    const testTicket = {
+      id: 'test-' + crypto.randomUUID().slice(0, 8),
+      token: 'test-token',
+      index: 1, of: 1,
+    };
+    const testOrder = { firstName: 'Test', lastName: 'User', email: to, quantity: 1, lang: 'en' };
+    const pdfBuffer = await generateTicketPdf(testTicket, testOrder, ev);
+    const { data, error } = await resend.emails.send({
+      from: MAIL_FROM, to: [to],
+      subject: '[TEST] HEAVY Ticket Email',
+      html: '<h2>Test email from HEAVY</h2><p>If you see this, Resend is working. A test PDF ticket is attached.</p>',
+      attachments: [{ filename: 'test-ticket.pdf', content: pdfBuffer }],
+    });
+    if (error) {
+      console.error('[test-email] Resend error:', JSON.stringify(error));
+      return res.status(502).json({ ok: false, error });
+    }
+    console.log('[test-email] Success:', data?.id);
+    return res.json({ ok: true, resend_id: data?.id, to, from: MAIL_FROM });
+  } catch (err) {
+    console.error('[test-email] Exception:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // ── Serve the static site ────────────────────────────────────
 app.use(express.static(path.join(__dirname)));
 
@@ -706,5 +808,10 @@ app.listen(PORT, HOST, () => {
   console.log(`▶ Ticket site + CAPI running on http://${HOST}:${PORT}`);
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     console.warn('⚠  META_PIXEL_ID / META_CAPI_TOKEN not set — /capi will return 500 until configured (see .env.example).');
+  }
+  if (RESEND_API_KEY) {
+    console.log(`✓ Resend configured (key: ${RESEND_API_KEY.slice(0, 8)}…) from: ${MAIL_FROM}`);
+  } else {
+    console.warn('⚠  RESEND_API_KEY not set — emails will be skipped (tickets still generated). See .env.example.');
   }
 });
