@@ -10,7 +10,7 @@ function heavy_event($id) {
       'venue'       => 'Gurtok',
       'address'     => 'Нижньоюрківська 31, Київ',
       'description' => '',                        // hidden while empty
-      'priceUah'    => 300,                       // UI display price
+      'priceUah'    => 1,                         // UI display price
     ],
   ];
   if (!isset($E[$id])) return null;
