@@ -6,7 +6,7 @@
   <title>HEAVY — Alter Ego Part 2</title>
 
   <!-- ═══════════════════════════════════════════════
-       META PIXEL  (Pixel ID + server-side CAPI)
+       META PIXEL
   ═══════════════════════════════════════════════════ -->
   <script>
     !function(f,b,e,v,n,t,s){
@@ -19,8 +19,8 @@
       'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '2185976098902803');
 
-    /* ── Shared tracking helper (Pixel + CAPI, deduped) ─────── */
-    function metaTrack(eventName, customData, userData) {
+    /* ── Shared tracking helper (Pixel, deduped) ─────── */
+    function metaTrack(eventName, customData) {
       customData = customData || {};
       const eventId = (crypto.randomUUID
         ? crypto.randomUUID()
@@ -28,18 +28,6 @@
       if (typeof fbq !== 'undefined') {
         fbq('track', eventName, customData, { eventID: eventId });
       }
-      fetch('/capi', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-        body: JSON.stringify({
-          event_name: eventName,
-          event_id: eventId,
-          event_source_url: window.location.href,
-          custom_data: customData,
-          user_data: userData || {},
-        }),
-      }).catch(function (err) { console.warn('CAPI send failed:', err); });
     }
     metaTrack('PageView');
   </script>
