@@ -5,8 +5,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 if (!mono_token_ok()) { http_response_code(500); echo json_encode(['error' => 'Payments not configured']); exit; }
 
-// ── Amount: SERVER-decided. 30000 kop = 300 UAH per ticket. ──
-$UNIT_KOP = 30000;
+// ── Amount: SERVER-decided. 100 kop = 1 UAH per ticket. ──
+$UNIT_KOP = 100;
 
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) $body = [];

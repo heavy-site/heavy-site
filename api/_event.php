@@ -11,7 +11,7 @@ function heavy_event($id) {
       'address'     => 'Нижньоюрківська 31, Київ',
       'geo'         => '50.466564192974495,30.499941806080255', // map pin; address shown as-is
       'description' => '',                        // hidden while empty
-      'priceUah'    => 300,                       // UI display price
+      'priceUah'    => 1,                         // UI display price
     ],
   ];
   if (!isset($E[$id])) return null;

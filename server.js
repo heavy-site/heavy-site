@@ -312,7 +312,7 @@ const MONO_TEST_AMOUNT = process.env.MONOBANK_TEST_AMOUNT ? parseInt(process.env
 // Server-authoritative catalog. The client only names the ticket id.
 const TICKETS = {
   'alter-ego': {
-    amount: 30000,            // UNIT price: 300.00 UAH, in kopiykas (server-decided)
+    amount: 100,              // UNIT price: 1.00 UAH, in kopiykas (server-decided)
     ccy: 980,                 // UAH
     destination: 'Ticket: Alter Ego, 28.06.2026, Gurtok',
   },
