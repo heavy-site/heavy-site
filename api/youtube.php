@@ -1,93 +1,110 @@
 <?php
-/* youtube.php — Returns latest YouTube videos as JSON.
-   Fetches the channel RSS feed, caches it for 15 minutes. */
+/* youtube.php — Returns the channel's latest long-form videos as JSON.
+
+   Strategy: scrape the channel's "Videos" tab (youtube.com/@handle/videos).
+   That tab natively lists ONLY full videos — Shorts live on a separate
+   tab and never appear here — and it reflects the live channel, so
+   deleted videos drop off automatically. Parsed from the embedded
+   ytInitialData JSON. Cached for 15 minutes.
+
+   Falls back to the RSS feed only if scraping fails; the frontend has its
+   own curated fallback list if this endpoint returns nothing. */
 header('Content-Type: application/json; charset=utf-8');
 
 $HANDLE   = 'heavy_rave';
 $CACHE    = __DIR__ . '/../_cache_yt.json';
 $CACHE_S  = 900; // 15 min
+$MAX      = 15;
 
-// Serve cache if fresh
-if (is_file($CACHE) && (time() - filemtime($CACHE)) < $CACHE_S) {
+// Serve fresh cache (unless ?refresh=1 forces a re-fetch)
+$forceRefresh = isset($_GET['refresh']);
+if (!$forceRefresh && is_file($CACHE) && (time() - filemtime($CACHE)) < $CACHE_S) {
   readfile($CACHE);
   exit;
 }
 
-// Resolve channel ID from handle (cached separately)
-$idFile = __DIR__ . '/../_cache_yt_id.txt';
-$channelId = is_file($idFile) ? trim(file_get_contents($idFile)) : '';
+/* Fetch a URL with a browser-like UA and consent cookie (avoids YouTube's
+   EU consent interstitial). Returns body string or '' on failure. */
+function yt_get($url) {
+  $ctx = stream_context_create(['http' => [
+    'method'        => 'GET',
+    'timeout'       => 8,
+    'ignore_errors' => true,
+    'header'        =>
+      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " .
+      "(KHTML, like Gecko) Chrome/120.0 Safari/537.36\r\n" .
+      "Accept-Language: en-US,en;q=0.9\r\n" .
+      "Cookie: CONSENT=YES+1; SOCS=CAI\r\n",
+  ]]);
+  $body = @file_get_contents($url, false, $ctx);
+  return $body ?: '';
+}
 
-if ($channelId === '') {
-  $page = @file_get_contents('https://www.youtube.com/@' . $HANDLE);
-  if ($page && preg_match('/"channelId":"(UC[^"]+)"/', $page, $m)) {
-    $channelId = $m[1];
-    file_put_contents($idFile, $channelId);
-  } elseif ($page && preg_match('/"externalId":"(UC[^"]+)"/', $page, $m)) {
-    $channelId = $m[1];
-    file_put_contents($idFile, $channelId);
+/* Recursively collect every videoRenderer (videoId + title) in document
+   order. The Videos tab contains only long-form videos, so no filtering
+   for Shorts is needed. */
+function collect_videos($node, &$out, &$seen) {
+  if (is_array($node)) {
+    if (isset($node['videoRenderer']['videoId'])) {
+      $vr = $node['videoRenderer'];
+      $id = $vr['videoId'];
+      if (!isset($seen[$id])) {
+        $title = '';
+        if (isset($vr['title']['runs'][0]['text']))      $title = $vr['title']['runs'][0]['text'];
+        elseif (isset($vr['title']['simpleText']))        $title = $vr['title']['simpleText'];
+        $seen[$id] = true;
+        $out[] = ['title' => $title, 'embed' => 'https://www.youtube.com/embed/' . $id, 'id' => $id];
+      }
+    }
+    foreach ($node as $child) {
+      if (is_array($child)) collect_videos($child, $out, $seen);
+    }
   }
 }
 
-if ($channelId === '') {
-  http_response_code(502);
-  echo json_encode(['error' => 'Could not resolve channel ID']);
-  exit;
-}
-
-// Fetch RSS feed
-$rss = @file_get_contents('https://www.youtube.com/feeds/videos.xml?channel_id=' . $channelId);
-if (!$rss) {
-  http_response_code(502);
-  echo json_encode(['error' => 'RSS fetch failed']);
-  exit;
-}
-
-$xml = @simplexml_load_string($rss);
-if (!$xml) {
-  http_response_code(502);
-  echo json_encode(['error' => 'RSS parse failed']);
-  exit;
-}
-
-$ns = $xml->getNamespaces(true);
 $videos = [];
 
-/* A video ID is a Short if youtube.com/shorts/<id> resolves with HTTP 200.
-   A regular video redirects (HTTP 30x) to /watch?v=<id>. We don't follow
-   the redirect — just read the status line. Results are cached so this only
-   runs once per 15-minute window. */
-function is_short($videoId) {
-  $ctx = stream_context_create(['http' => [
-    'method'          => 'HEAD',
-    'follow_location' => 0,
-    'timeout'         => 4,
-    'ignore_errors'   => true,
-    'header'          => "User-Agent: Mozilla/5.0\r\n",
-  ]]);
-  $headers = @get_headers('https://www.youtube.com/shorts/' . $videoId, true, $ctx);
-  if (!$headers || !isset($headers[0])) return false; // unknown → keep it
-  // $headers[0] looks like "HTTP/1.1 200 OK" or "HTTP/1.1 303 See Other"
-  return strpos($headers[0], ' 200') !== false;
+// ── Primary: scrape the Videos tab ──
+$page = yt_get('https://www.youtube.com/@' . $HANDLE . '/videos');
+if ($page !== '' &&
+    preg_match('/ytInitialData\s*=\s*(\{.+?\})\s*;\s*<\/script>/s', $page, $m)) {
+  $data = json_decode($m[1], true);
+  if (is_array($data)) {
+    $seen = [];
+    collect_videos($data, $videos, $seen);
+  }
 }
 
-foreach ($xml->entry as $entry) {
-  $yt = $entry->children($ns['yt'] ?? 'http://www.youtube.com/xml/schemas/2015');
-  $media = $entry->children($ns['media'] ?? 'http://search.yahoo.com/mrss/');
+// ── Fallback: RSS feed (includes Shorts, but better than nothing) ──
+if (!$videos) {
+  $channelId = '';
+  if ($page !== '' && preg_match('/"(?:channelId|externalId)":"(UC[^"]+)"/', $page, $cm)) {
+    $channelId = $cm[1];
+  }
+  if ($channelId !== '') {
+    $rss = yt_get('https://www.youtube.com/feeds/videos.xml?channel_id=' . $channelId);
+    $xml = $rss ? @simplexml_load_string($rss) : null;
+    if ($xml) {
+      $ns = $xml->getNamespaces(true);
+      foreach ($xml->entry as $entry) {
+        $yt = $entry->children($ns['yt'] ?? 'http://www.youtube.com/xml/schemas/2015');
+        $id = (string)$yt->videoId;
+        $title = (string)$entry->title;
+        if (stripos($title, '#short') !== false) continue;
+        $videos[] = ['title' => $title, 'embed' => 'https://www.youtube.com/embed/' . $id, 'id' => $id];
+      }
+    }
+  }
+}
 
-  $videoId = (string)$yt->videoId;
-  $title   = (string)$entry->title;
+$videos = array_slice($videos, 0, $MAX);
 
-  // Skip Shorts — both the explicit hashtag convention and the real check.
-  if (stripos($title, '#short') !== false) continue;
-  if (is_short($videoId)) continue;
-
-  $videos[] = [
-    'title' => $title,
-    'embed' => 'https://www.youtube.com/embed/' . $videoId,
-    'id'    => $videoId,
-  ];
+// Don't overwrite a good cache with an empty result (transient fetch failure).
+if (!$videos && is_file($CACHE)) {
+  readfile($CACHE);
+  exit;
 }
 
 $json = json_encode($videos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-file_put_contents($CACHE, $json);
+if ($videos) file_put_contents($CACHE, $json);
 echo $json;
