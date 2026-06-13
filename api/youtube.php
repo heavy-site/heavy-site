@@ -52,6 +52,24 @@ if (!$xml) {
 $ns = $xml->getNamespaces(true);
 $videos = [];
 
+/* A video ID is a Short if youtube.com/shorts/<id> resolves with HTTP 200.
+   A regular video redirects (HTTP 30x) to /watch?v=<id>. We don't follow
+   the redirect — just read the status line. Results are cached so this only
+   runs once per 15-minute window. */
+function is_short($videoId) {
+  $ctx = stream_context_create(['http' => [
+    'method'          => 'HEAD',
+    'follow_location' => 0,
+    'timeout'         => 4,
+    'ignore_errors'   => true,
+    'header'          => "User-Agent: Mozilla/5.0\r\n",
+  ]]);
+  $headers = @get_headers('https://www.youtube.com/shorts/' . $videoId, true, $ctx);
+  if (!$headers || !isset($headers[0])) return false; // unknown → keep it
+  // $headers[0] looks like "HTTP/1.1 200 OK" or "HTTP/1.1 303 See Other"
+  return strpos($headers[0], ' 200') !== false;
+}
+
 foreach ($xml->entry as $entry) {
   $yt = $entry->children($ns['yt'] ?? 'http://www.youtube.com/xml/schemas/2015');
   $media = $entry->children($ns['media'] ?? 'http://search.yahoo.com/mrss/');
@@ -59,9 +77,9 @@ foreach ($xml->entry as $entry) {
   $videoId = (string)$yt->videoId;
   $title   = (string)$entry->title;
 
-  // Skip Shorts (typically under 60s, but RSS doesn't expose duration reliably).
-  // Heuristic: skip if title contains #shorts (common convention).
+  // Skip Shorts — both the explicit hashtag convention and the real check.
   if (stripos($title, '#short') !== false) continue;
+  if (is_short($videoId)) continue;
 
   $videos[] = [
     'title' => $title,
