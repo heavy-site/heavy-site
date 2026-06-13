@@ -2,13 +2,16 @@
 /* youtube.php — Returns the channel's latest long-form videos as JSON.
 
    Strategy: scrape the channel's "Videos" tab (youtube.com/@handle/videos).
-   That tab natively lists ONLY full videos — Shorts live on a separate
-   tab and never appear here — and it reflects the live channel, so
-   deleted videos drop off automatically. Parsed from the embedded
-   ytInitialData JSON. Cached for 15 minutes.
+   That tab natively lists ONLY full videos — Shorts live on a separate tab
+   and never appear here — and it reflects the LIVE channel, so deleted
+   videos drop off automatically. Parsed from the embedded ytInitialData
+   JSON via a brace-balanced extractor (robust to YouTube markup changes).
+   Cached for 15 minutes.
 
-   Falls back to the RSS feed only if scraping fails; the frontend has its
-   own curated fallback list if this endpoint returns nothing. */
+   We deliberately do NOT fall back to the RSS feed: RSS includes Shorts
+   and lags on deletions, which is exactly what reintroduces the broken /
+   removed videos. If scraping yields nothing, we keep the previous good
+   cache; the frontend has its own curated fallback list otherwise. */
 header('Content-Type: application/json; charset=utf-8');
 
 $HANDLE   = 'heavy_rave';
@@ -16,9 +19,11 @@ $CACHE    = __DIR__ . '/../_cache_yt.json';
 $CACHE_S  = 900; // 15 min
 $MAX      = 15;
 
-// Serve fresh cache (unless ?refresh=1 forces a re-fetch)
+// Serve fresh cache (unless ?refresh=1 forces a re-fetch + drops stale cache)
 $forceRefresh = isset($_GET['refresh']);
-if (!$forceRefresh && is_file($CACHE) && (time() - filemtime($CACHE)) < $CACHE_S) {
+if ($forceRefresh) {
+  @unlink($CACHE);
+} elseif (is_file($CACHE) && (time() - filemtime($CACHE)) < $CACHE_S) {
   readfile($CACHE);
   exit;
 }
@@ -40,71 +45,88 @@ function yt_get($url) {
   return $body ?: '';
 }
 
-/* Recursively collect every videoRenderer (videoId + title) in document
-   order. The Videos tab contains only long-form videos, so no filtering
-   for Shorts is needed. */
-function collect_videos($node, &$out, &$seen) {
-  if (is_array($node)) {
-    if (isset($node['videoRenderer']['videoId'])) {
-      $vr = $node['videoRenderer'];
-      $id = $vr['videoId'];
-      if (!isset($seen[$id])) {
-        $title = '';
-        if (isset($vr['title']['runs'][0]['text']))      $title = $vr['title']['runs'][0]['text'];
-        elseif (isset($vr['title']['simpleText']))        $title = $vr['title']['simpleText'];
-        $seen[$id] = true;
-        $out[] = ['title' => $title, 'embed' => 'https://www.youtube.com/embed/' . $id, 'id' => $id];
+/* Extract the JSON object assigned to `ytInitialData` using brace balancing
+   that respects strings/escapes — far more robust than a lazy regex. */
+function extract_initial_data($html) {
+  $needle = 'ytInitialData';
+  $p = strpos($html, $needle);
+  while ($p !== false) {
+    // Find the first '{' after the marker (skip the ' = ' part)
+    $brace = strpos($html, '{', $p);
+    $eq    = strpos($html, '=', $p);
+    if ($brace !== false && ($eq === false || $brace > $eq)) {
+      $json = scan_balanced_object($html, $brace);
+      if ($json !== '') {
+        $data = json_decode($json, true);
+        if (is_array($data)) return $data;
       }
     }
-    foreach ($node as $child) {
-      if (is_array($child)) collect_videos($child, $out, $seen);
+    $p = strpos($html, $needle, $p + strlen($needle));
+  }
+  return null;
+}
+
+/* Given the index of an opening '{', return the substring through its
+   matching '}', honoring string literals and escapes. */
+function scan_balanced_object($s, $start) {
+  $len = strlen($s);
+  $depth = 0;
+  $inStr = false;
+  $esc = false;
+  for ($i = $start; $i < $len; $i++) {
+    $c = $s[$i];
+    if ($inStr) {
+      if ($esc)            { $esc = false; }
+      elseif ($c === '\\') { $esc = true; }
+      elseif ($c === '"')  { $inStr = false; }
+    } else {
+      if ($c === '"')      { $inStr = true; }
+      elseif ($c === '{')  { $depth++; }
+      elseif ($c === '}')  { $depth--; if ($depth === 0) return substr($s, $start, $i - $start + 1); }
     }
+  }
+  return '';
+}
+
+/* Recursively collect every videoRenderer (videoId + title) in document
+   order. The Videos tab contains only long-form videos. */
+function collect_videos($node, &$out, &$seen) {
+  if (!is_array($node)) return;
+  if (isset($node['videoRenderer']['videoId'])) {
+    $vr = $node['videoRenderer'];
+    $id = $vr['videoId'];
+    if (!isset($seen[$id])) {
+      $title = '';
+      if (isset($vr['title']['runs'][0]['text'])) $title = $vr['title']['runs'][0]['text'];
+      elseif (isset($vr['title']['simpleText']))  $title = $vr['title']['simpleText'];
+      $seen[$id] = true;
+      $out[] = ['title' => $title, 'embed' => 'https://www.youtube.com/embed/' . $id, 'id' => $id];
+    }
+  }
+  foreach ($node as $child) {
+    if (is_array($child)) collect_videos($child, $out, $seen);
   }
 }
 
 $videos = [];
-
-// ── Primary: scrape the Videos tab ──
 $page = yt_get('https://www.youtube.com/@' . $HANDLE . '/videos');
-if ($page !== '' &&
-    preg_match('/ytInitialData\s*=\s*(\{.+?\})\s*;\s*<\/script>/s', $page, $m)) {
-  $data = json_decode($m[1], true);
-  if (is_array($data)) {
+if ($page !== '') {
+  $data = extract_initial_data($page);
+  if ($data) {
     $seen = [];
     collect_videos($data, $videos, $seen);
   }
 }
 
-// ── Fallback: RSS feed (includes Shorts, but better than nothing) ──
-if (!$videos) {
-  $channelId = '';
-  if ($page !== '' && preg_match('/"(?:channelId|externalId)":"(UC[^"]+)"/', $page, $cm)) {
-    $channelId = $cm[1];
-  }
-  if ($channelId !== '') {
-    $rss = yt_get('https://www.youtube.com/feeds/videos.xml?channel_id=' . $channelId);
-    $xml = $rss ? @simplexml_load_string($rss) : null;
-    if ($xml) {
-      $ns = $xml->getNamespaces(true);
-      foreach ($xml->entry as $entry) {
-        $yt = $entry->children($ns['yt'] ?? 'http://www.youtube.com/xml/schemas/2015');
-        $id = (string)$yt->videoId;
-        $title = (string)$entry->title;
-        if (stripos($title, '#short') !== false) continue;
-        $videos[] = ['title' => $title, 'embed' => 'https://www.youtube.com/embed/' . $id, 'id' => $id];
-      }
-    }
-  }
-}
-
 $videos = array_slice($videos, 0, $MAX);
 
-// Don't overwrite a good cache with an empty result (transient fetch failure).
-if (!$videos && is_file($CACHE)) {
-  readfile($CACHE);
+// Never overwrite a good cache with an empty result (transient failure).
+if (!$videos) {
+  if (is_file($CACHE)) { readfile($CACHE); exit; }
+  echo '[]';
   exit;
 }
 
 $json = json_encode($videos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-if ($videos) file_put_contents($CACHE, $json);
+file_put_contents($CACHE, $json);
 echo $json;
