@@ -39,10 +39,18 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- Brutalist B&W type: Anton (giant display), Saira Condensed (body), Space Mono (labels) -->
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- Brutalist B&W type: Kabisat (giant display), Saira Condensed (body), Space Mono (labels) -->
+  <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <style>
+    @font-face {
+      font-family: 'Kabisat';
+      src: url('fonts/Kabisat Demo-ItalicTall.ttf') format('truetype');
+      font-weight: normal;
+      font-style: italic;
+      font-display: swap;
+    }
+
     /* ══════════════════════════════════════════════════
        TOKENS
     ══════════════════════════════════════════════════ */
@@ -55,9 +63,13 @@
       --line:      rgba(140,140,140,0.22);
       --line-soft: rgba(140,140,140,0.10);
 
-      --font-display: 'Anton', 'Arial Narrow', Impact, sans-serif;
+      --font-display: 'Kabisat', 'Arial Narrow', Impact, sans-serif;
       --font:         'Saira Condensed', 'Arial Narrow', sans-serif;
       --font-mono:    'Space Mono', monospace;
+
+      /* Kabisat is much wider/taller than Anton — one knob shrinks every
+         display heading. Tune this single value to taste. */
+      --display-scale: 0.7;
 
       --nav-h: 58px;
       --ease:  cubic-bezier(0.22, 1, 0.36, 1);
@@ -248,8 +260,9 @@
     .hero h1 {
       position: relative; z-index: 1;
       font-family: var(--font-display);
-      /* full-bleed oversized word */
-      font-size: clamp(5rem, 38vw, 30rem);
+      /* full-bleed oversized word — extra shrink: this fills the viewport
+         width and Kabisat is far wider than Anton. */
+      font-size: calc(clamp(5rem, 38vw, 30rem) * var(--display-scale) * 0.62);
       line-height: 0.82;
       letter-spacing: -0.02em;
       text-transform: uppercase;
@@ -302,7 +315,7 @@
     }
     .feed-section-head h2 {
       font-family: var(--font-display);
-      font-size: clamp(2.4rem, 8vw, 5rem);
+      font-size: calc(clamp(2.4rem, 8vw, 5rem) * var(--display-scale));
       text-transform: uppercase;
       line-height: 0.92;
     }
@@ -325,7 +338,7 @@
     }
     .video-title {
       font-family: var(--font-display);
-      font-size: clamp(1.8rem, 6vw, 4.5rem);
+      font-size: calc(clamp(1.8rem, 6vw, 4.5rem) * var(--display-scale));
       line-height: 0.95;
       text-transform: uppercase;
       letter-spacing: -0.01em;
@@ -389,7 +402,7 @@
     }
     .section-head h2 {
       font-family: var(--font-display);
-      font-size: clamp(2.4rem, 7vw, 5rem);
+      font-size: calc(clamp(2.4rem, 7vw, 5rem) * var(--display-scale));
       text-transform: uppercase;
       line-height: 0.9;
     }
@@ -443,7 +456,7 @@
     .event-card:hover .card-info { transform: translateY(0); }
     .card-name {
       font-family: var(--font-display);
-      font-size: 1.7rem;
+      font-size: calc(1.7rem * var(--display-scale));
       text-transform: uppercase;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
@@ -520,7 +533,7 @@
     }
     .ev-card .ev-name {
       font-family: var(--font-display);
-      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      font-size: calc(clamp(1.4rem, 2.4vw, 2rem) * var(--display-scale));
       text-transform: uppercase; line-height: 0.95;
     }
     .ev-card .ev-date {
@@ -546,7 +559,7 @@
     .back-btn:hover { color: var(--fg); border-color: var(--fg); }
     .gallery-head h2 {
       font-family: var(--font-display);
-      font-size: clamp(1.8rem, 6vw, 3.6rem); text-transform: uppercase; line-height: 0.95;
+      font-size: calc(clamp(1.8rem, 6vw, 3.6rem) * var(--display-scale)); text-transform: uppercase; line-height: 0.95;
     }
     .gallery-head .g-date { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); letter-spacing: 0.18em; }
 
@@ -670,7 +683,7 @@
     }
     .modal-close:hover { color: var(--fg); background: rgba(13,13,13,0.7); }
     .co-name {
-      font-family: var(--font-display); font-size: clamp(2rem, 7vw, 3rem);
+      font-family: var(--font-display); font-size: calc(clamp(2rem, 7vw, 3rem) * var(--display-scale));
       text-transform: uppercase; line-height: 0.9; margin: 6px 0 18px;
     }
     .co-detail { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px;
@@ -732,7 +745,7 @@
       display: flex; align-items: baseline; justify-content: space-between;
       margin: 8px 0 4px; padding-top: 14px; border-top: 1px solid var(--line-soft);
     }
-    #co-total-val { font-family: var(--font-display); font-size: 1.6rem; }
+    #co-total-val { font-family: var(--font-display); font-size: calc(1.6rem * var(--display-scale)); }
     .co-error { color: #e06; font-family: var(--font-mono); font-size: 0.74rem; margin: 0; }
     .co-pay {
       margin-top: 6px; display: flex; align-items: center; justify-content: center;
@@ -776,7 +789,7 @@
       display: flex; align-items: center; justify-content: center;
       padding: 20px; text-align: center;
       font-family: var(--font-display);
-      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      font-size: calc(clamp(1.6rem, 3vw, 2.6rem) * var(--display-scale));
       text-transform: uppercase; line-height: 0.95;
       opacity: 0; transform: translateY(12px);
       transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
