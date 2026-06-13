@@ -7,6 +7,9 @@
   RewriteRule ^api/download/?$  /api/download.php [L,QSA]
   RewriteRule ^api/photo/?$     /api/download.php?inline=1 [L,QSA]
 
+  # YouTube video feed (cached RSS proxy)
+  RewriteRule ^api/youtube/?$          /api/youtube.php          [L,QSA]
+
   # Event info for the checkout modal
   RewriteRule ^api/event/?$            /api/event.php            [L,QSA]
 

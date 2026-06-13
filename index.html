@@ -288,8 +288,25 @@
       color: var(--fg);
     }
 
-    .feed {
+    .feed-section-head {
+      padding: 80px clamp(20px, 6vw, 90px) 0;
       border-top: 1px solid var(--line);
+    }
+    .feed-section-head .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .feed-section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 8vw, 5rem);
+      text-transform: uppercase;
+      line-height: 0.92;
+    }
+    .feed {
     }
     .video-item {
       border-bottom: 1px solid var(--line-soft);
@@ -831,6 +848,7 @@
       .lang button { padding: 0 9px; font-size: 0.62rem; }
       .events-grid { grid-template-columns: 1fr; }
       .photo-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .feed-section-head { padding: 52px 18px 0; }
       .video-item { padding: 44px 18px; }
       .artist-detail-body { grid-template-columns: 1fr; }
       .artist-detail-body .a-photo { max-width: 360px; }
@@ -907,7 +925,11 @@
       </section>
     </div>
 
-    <!-- Video feed (newest first). Built from the VIDEOS array in JS. -->
+    <!-- Video feed heading + feed (newest first, loaded from YouTube RSS). -->
+    <div class="feed-section-head reveal">
+      <p class="eyebrow" data-i18n="feed-eyebrow">YouTube</p>
+      <h2 data-i18n="feed-headline">Our Content</h2>
+    </div>
     <div class="feed" id="video-feed"></div>
   </section>
 
@@ -1086,14 +1108,10 @@
     const TICKETS_BG = 'background.mp4';   // Tickets page background video
 
     /* ════════════════════════════════════════════════════════
-       1) VIDEOS  — Welcome feed.  NEWEST FIRST (top of array).
-          To add a video: add an object at the TOP of this list.
-          Use a YouTube or Vimeo *embed* URL.
-            YouTube:  https://www.youtube.com/embed/VIDEO_ID
-            Vimeo:    https://player.vimeo.com/video/VIDEO_ID
+       1) VIDEOS  — Welcome feed.  Loaded from YouTube RSS via /api/youtube.
+          Falls back to hardcoded list if the API is unreachable.
     ════════════════════════════════════════════════════════ */
-    // Source: youtube.com/@heavy_rave — full videos only (Shorts excluded), newest first.
-    const VIDEOS = [
+    const VIDEOS_FALLBACK = [
       { title: 'Alter Ego — etoyle Mix',            embed: 'https://www.youtube.com/embed/EFLzbruQQXw' },
       { title: 'Heavy: Alter Ego — Artem Mix',      embed: 'https://www.youtube.com/embed/xs30jEZNhy0' },
       { title: 'Heavy ULTRA — ToXid x Smolyakov',   embed: 'https://www.youtube.com/embed/V-t6nHGsef0' },
@@ -1103,6 +1121,7 @@
       { title: 'Heavy:ULTRA — Gribovskii37 Mix',    embed: 'https://www.youtube.com/embed/7yjXHNDNSjs' },
       { title: 'Heavy:ULTRA — ELMAR Mix',           embed: 'https://www.youtube.com/embed/71VoedgpRBA' },
     ];
+    let VIDEOS = VIDEOS_FALLBACK;
 
     /* ════════════════════════════════════════════════════════
        2) EVENTS  — Photos archive.
@@ -1185,6 +1204,7 @@
         'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking',
         'scroll-hint': 'Scroll ↓',
         'welcome-desc': 'HEAVY is a rave series built on heavy sound and raw energy — a home for nu-era EDM, underground culture, and the artists pushing it forward.',
+        'feed-eyebrow': 'YouTube', 'feed-headline': 'Our Content',
         'eyebrow': 'Upcoming Events', 'headline': 'Tickets',
         'lbl-date': 'Date & Time', 'lbl-place': 'Place', 'lbl-price': 'Price',
         'lbl-time': 'Time', 'lbl-geo': 'Map', 'open-map': 'Open in maps ↗',
@@ -1199,6 +1219,7 @@
         'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг',
         'scroll-hint': 'Гортай ↓',
         'welcome-desc': 'HEAVY — це серія рейвів, побудована на важкому звуці та сирій енергії: дім для EDM нової ери, андеграундної культури та артистів, що рухають її вперед.',
+        'feed-eyebrow': 'YouTube', 'feed-headline': 'Наш контент',
         'eyebrow': 'Найближчі події', 'headline': 'Квитки',
         'lbl-date': 'Дата та час', 'lbl-place': 'Місце', 'lbl-price': 'Ціна',
         'lbl-time': 'Час', 'lbl-geo': 'Мапа', 'open-map': 'Відкрити в картах ↗',
@@ -1306,9 +1327,9 @@
     /* ════════════════════════════════════════════════════════
        BUILD WELCOME VIDEO FEED
     ════════════════════════════════════════════════════════ */
-    function buildVideoFeed() {
+    function renderVideoFeed(list) {
       const feed = document.getElementById('video-feed');
-      feed.innerHTML = VIDEOS.map((v, i) => `
+      feed.innerHTML = list.map((v, i) => `
         <div class="video-item reveal">
           <div class="video-head">
             <span class="video-index">${String(i + 1).padStart(2, '0')}</span>
@@ -1321,6 +1342,17 @@
           </div>
         </div>`).join('');
       observeReveals(feed);
+    }
+
+    async function buildVideoFeed() {
+      try {
+        const r = await fetch('/api/youtube');
+        if (r.ok) {
+          const data = await r.json();
+          if (Array.isArray(data) && data.length) VIDEOS = data;
+        }
+      } catch (_) {}
+      renderVideoFeed(VIDEOS);
     }
 
     /* ════════════════════════════════════════════════════════
