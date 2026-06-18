@@ -1624,7 +1624,7 @@
       const grid = document.getElementById('artists-grid');
       grid.innerHTML = ARTISTS.map((a, i) => `
         <div class="artist-card" onclick="openArtist(${i})">
-          <img src="${a.photo}" alt="${a.name}" loading="lazy"
+          <img src="/${a.photo}" alt="${a.name}" loading="lazy"
                onload="this.classList.add('loaded')"
                onerror="this.closest('.artist-card').classList.add('no-photo')" />
           <span class="a-idx">${String(i + 1).padStart(2, '0')}</span>
@@ -1675,7 +1675,7 @@
       // Slide 1 blurred looping background video (optional per-artist).
       const introBgHtml = a.introVideo
         ? `<div class="slide-bg">
-             <video autoplay muted loop playsinline src="${a.introVideo}"></video>
+             <video autoplay muted loop playsinline src="/${a.introVideo}"></video>
              <div class="slide-bg-overlay"></div>
            </div>`
         : '';
@@ -1689,7 +1689,7 @@
         <div class="artist-slide">
           ${introBgHtml}
           <div class="slide-intro">
-            <img class="a-photo" src="${a.photo}" alt="${a.name}" />
+            <img class="a-photo" src="/${a.photo}" alt="${a.name}" />
             <div class="a-info">
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc">${a.description || ''}</p>
