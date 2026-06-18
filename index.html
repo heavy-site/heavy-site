@@ -841,17 +841,17 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: clamp(28px, 5vw, 64px);
-      align-items: center;
+      align-items: stretch;
+      min-height: calc(100dvh - var(--nav-h) - 90px);
       width: 100%; max-width: 1300px; margin: 0 auto;
     }
     .slide-intro .a-photo {
-      width: 100%; max-width: 100%; height: auto; max-height: 88vh;
-      object-fit: contain; display: block;
-      justify-self: center;
+      width: 100%; max-width: 100%; height: 100%;
+      object-fit: contain; object-position: center bottom; display: block;
       border: none; background: none; filter: none;
     }
     .slide-intro .a-info {
-      display: flex; flex-direction: column; gap: 24px;
+      display: flex; flex-direction: column; justify-content: center; gap: 24px;
     }
     .slide-intro .a-artist-name {
       font-family: var(--font-display);
@@ -997,8 +997,8 @@
     }
 
     @media (max-width: 640px) {
-      .slide-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-      .slide-intro .a-photo { max-width: 440px; max-height: 60dvh; }
+      .slide-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; min-height: 0; align-items: center; }
+      .slide-intro .a-photo { width: 100%; max-width: 440px; height: auto; max-height: 60dvh; }
       .slide-intro .a-desc { text-align: left; }
       .a-contacts { justify-content: center; flex-wrap: wrap; }
       .slide-media-content { grid-template-columns: 1fr; }
