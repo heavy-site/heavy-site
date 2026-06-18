@@ -822,7 +822,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: clamp(40px, 5vw, 80px);
+      padding: 0;
     }
 
     /* Slide 1 — Intro: blurred looping video bg + free-standing PNG */
@@ -845,8 +845,15 @@
       min-height: calc(100dvh - var(--nav-h));
       width: 100%; margin: 0 auto;
     }
+    .slide-intro .a-photo-wrap {
+      position: relative;
+      height: calc(100dvh - var(--nav-h));
+    }
     .slide-intro .a-photo {
-      width: 100%; height: calc(100dvh - var(--nav-h));
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 100%;
+      width: auto; max-width: none;
       object-fit: contain; object-position: left bottom; display: block;
       border: none; background: none; filter: none;
     }
@@ -880,6 +887,9 @@
     }
     .a-contact-btn:hover { background: var(--fg); color: #0D0D0D; }
     .a-contact-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* Slides 2 & 3 get inner padding (slide 1 is edge-to-edge for the photo) */
+    .artist-slide:not(:first-child) { padding: clamp(40px, 5vw, 80px); }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1001,8 +1011,10 @@
 
     @media (max-width: 640px) {
       .slide-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; min-height: 0; align-items: center; gap: 0; }
-      .slide-intro .a-photo { width: 100%; max-width: 440px; height: auto; max-height: 60dvh; object-position: center center; }
+      .slide-intro .a-photo-wrap { height: auto; }
+      .slide-intro .a-photo { position: static; width: 100%; max-width: 440px; height: auto; max-height: 60dvh; object-position: center center; }
       .slide-intro .a-info { min-height: 0; padding: 24px 18px 0; }
+      .artist-slide:not(:first-child) { padding: 72px 18px 40px; }
       .slide-intro .a-desc { text-align: left; }
       .a-contacts { justify-content: center; flex-wrap: wrap; }
       .slide-media-content { grid-template-columns: 1fr; }
@@ -1705,7 +1717,7 @@
         <div class="artist-slide">
           ${introBgHtml}
           <div class="slide-intro">
-            <img class="a-photo" src="/${a.photo}" alt="${a.name}" />
+            <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
             <div class="a-info">
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc">${a.description || ''}</p>
