@@ -857,8 +857,8 @@
       width: auto; max-width: none;
       object-fit: contain; object-position: left bottom; display: block;
       border: none; background: none; filter: none;
-      -webkit-mask-image: linear-gradient(to top, transparent 0%, black 85%, black 100%);
-      mask-image: linear-gradient(to top, transparent 0%, black 85%, black 100%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,1) 100%);
+      mask-image: linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,1) 100%);
     }
     .slide-intro .a-info {
       display: flex; flex-direction: column; justify-content: center; gap: 24px;
@@ -910,8 +910,8 @@
     .a-links { display: flex; flex-direction: column; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
     .a-link {
       display: flex; align-items: center; gap: 14px;
-      padding: 16px 20px; background: var(--bg);
-      font-family: var(--font-mono); font-size: 0.82rem;
+      padding: 20px 26px; background: var(--bg);
+      font-family: var(--font-mono); font-size: 0.95rem;
       letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--fg);
       transition: background 0.2s var(--ease), color 0.2s var(--ease), padding-left 0.2s var(--ease);
@@ -919,7 +919,7 @@
     .a-link:hover { background: var(--fg); color: #0D0D0D; padding-left: 28px; }
     .a-link .a-link-arrow { margin-left: auto; transition: transform 0.2s var(--ease); }
     .a-link:hover .a-link-arrow { transform: translateX(4px); }
-    .a-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .a-link svg { width: 24px; height: 24px; flex-shrink: 0; }
 
     .a-embeds {
       display: flex; flex-direction: column; gap: 24px;
@@ -954,14 +954,19 @@
       display: flex; flex-direction: column; gap: 8px;
     }
     .rider-list li {
-      padding: 12px 16px;
+      padding: 16px 20px;
       background: rgba(38,38,38,0.6);
       border-left: 2px solid var(--muted);
-      font-size: 0.95rem; line-height: 1.4;
+      font-size: 1.05rem; line-height: 1.5;
       color: rgba(242,242,242,0.85);
     }
 
     /* Booking form */
+    .bk-label {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: -6px;
+    }
     .bk-form {
       display: flex; flex-direction: column; gap: 12px;
     }
@@ -1007,14 +1012,6 @@
     .bk-msg.err { color: #e06; }
 
     /* Scroll hint between slides */
-    .slide-scroll-hint {
-      position: absolute; bottom: 24px; left: 50%;
-      transform: translateX(-50%);
-      font-family: var(--font-mono); font-size: 0.68rem;
-      letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--muted);
-      animation: bob 2s ease-in-out infinite;
-    }
 
     @media (max-width: 640px) {
       .slide-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; min-height: 0; align-items: center; gap: 0; }
@@ -1037,6 +1034,9 @@
       .bk-budget-row .bk-input { min-width: 0; }
       .bk-budget-row .bk-select { flex: 0 0 80px; }
       .bk-form { max-width: 100%; overflow: hidden; }
+      .a-contacts { flex-direction: column; gap: 10px; }
+      .a-contact-btn { justify-content: center; width: 100%; box-sizing: border-box; padding: 16px 22px; font-size: 0.85rem; }
+      .slide-intro .a-photo { max-width: 90vw; max-height: 70dvh; }
     }
 
     /* ══════════════════════════════════════════════════
@@ -1423,6 +1423,9 @@
           'Decks — Pioneer 1000MK1/MK2/2000NXS2/3000 — 2–3x',
           'Pioneer DJ XDJ-RR / XDJ-RX3 / XDJ-XZ / XDJ-AZ',
         ],
+        nonTechRider: [
+          '2x 1L still water (no gas)',
+        ],
       },
     ];
 
@@ -1700,8 +1703,8 @@
       const embedsHtml = (() => {
         const e = a.embeds || {};
         let html = '';
-        if (e.youtube) html += `<div class="a-embed-wrap"><div class="a-embed-label">YouTube</div><iframe height="315" src="${e.youtube}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-        if (e.soundcloud) html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud</div><iframe height="166" scrolling="no" allow="autoplay" src="${e.soundcloud}"></iframe></div>`;
+        if (e.youtube) html += `<div class="a-embed-wrap"><div class="a-embed-label">YouTube</div><iframe height="400" src="${e.youtube}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+        if (e.soundcloud) html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud</div><iframe height="220" scrolling="no" allow="autoplay" src="${e.soundcloud}"></iframe></div>`;
         return html;
       })();
 
@@ -1715,6 +1718,7 @@
 
       // ── Slide 3: Rider + form ──
       const riderHtml = (a.rider || []).map(r => `<li>${r}</li>`).join('');
+      const nonTechRiderHtml = (a.nonTechRider || []).map(r => `<li>${r}</li>`).join('');
       const hasSlide3 = riderHtml || true; // always show form
 
       document.getElementById('artist-slides').innerHTML = `
@@ -1729,7 +1733,6 @@
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
             </div>
           </div>
-          <div class="slide-scroll-hint">Scroll ↓</div>
         </div>
 
         <!-- SLIDE 2 — Media -->
@@ -1738,7 +1741,6 @@
             <div class="a-links">${linksHtml}</div>
             ${embedsHtml ? '<div class="a-embeds">' + embedsHtml + '</div>' : ''}
           </div>
-          <div class="slide-scroll-hint">Scroll ↓</div>
         </div>
 
         <!-- SLIDE 3 — Rider & Booking form -->
@@ -1747,6 +1749,7 @@
             <div class="rider-section">
               <h3>Technical Rider</h3>
               ${riderHtml ? '<ul class="rider-list">' + riderHtml + '</ul>' : '<p style="color:var(--muted)">No rider info available.</p>'}
+              ${nonTechRiderHtml ? '<h3 style="margin-top:32px;">Non-Technical Rider</h3><ul class="rider-list">' + nonTechRiderHtml + '</ul>' : ''}
             </div>
             <div class="booking-form-section">
               <h3>Booking Request</h3>
@@ -1760,7 +1763,8 @@
                   <input class="bk-input" name="email" type="email" placeholder="Email" required />
                 </div>
                 <input class="bk-input" name="eventName" placeholder="Event name" required />
-                <input class="bk-input" name="eventDate" type="date" required style="color-scheme:dark;" />
+                <label class="bk-label" for="bk-date">Date</label>
+                <input class="bk-input" name="eventDate" id="bk-date" type="date" required style="color-scheme:dark;" />
                 <div class="bk-budget-row">
                   <input class="bk-input" name="budget" type="number" min="0" placeholder="Budget" />
                   <select class="bk-select" name="currency">
