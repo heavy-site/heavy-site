@@ -792,8 +792,9 @@
     /* ── Artist detail: sticky STACKED slides (each covers the previous on
        scroll). No scroll-driven scale/zoom anywhere. ── */
     #artist-detail {
-      /* break out of .photos-wrap padding so slides are full-bleed */
-      margin: -60px calc(-1 * clamp(20px, 6vw, 90px)) -100px;
+      /* break out of .photos-wrap padding so slides are full-bleed,
+         and pull up under the nav so slide 1 fills the full viewport */
+      margin: calc(-60px - var(--nav-h)) calc(-1 * clamp(20px, 6vw, 90px)) -100px;
     }
     .artist-back {
       position: sticky;
@@ -824,12 +825,12 @@
     }
     .artist-slides-bg .slide-bg-overlay {
       position: absolute; inset: 0;
-      background: linear-gradient(rgba(13,13,13,0.35), rgba(13,13,13,0.55));
+      background: linear-gradient(rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.4) 22%, rgba(13,13,13,0.4) 78%, rgba(13,13,13,0.6) 100%);
     }
 
     .artist-slide {
       position: relative;
-      min-height: calc(100dvh - var(--nav-h));
+      min-height: 100dvh;
       background: transparent;
       display: flex;
       flex-direction: column;
@@ -843,12 +844,12 @@
       grid-template-columns: 1.15fr 1fr;
       gap: 0;
       align-items: end;
-      min-height: calc(100dvh - var(--nav-h));
+      min-height: 100dvh;
       width: 100%; margin: 0 auto;
     }
     .slide-intro .a-photo-wrap {
       position: relative;
-      height: calc(100dvh - var(--nav-h));
+      height: 100dvh;
     }
     .slide-intro .a-photo {
       position: absolute;
