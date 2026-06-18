@@ -962,11 +962,6 @@
     }
 
     /* Booking form */
-    .bk-label {
-      font-family: var(--font-mono); font-size: 0.72rem;
-      letter-spacing: 0.16em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: -6px;
-    }
     .bk-form {
       display: flex; flex-direction: column; gap: 12px;
     }
@@ -1763,8 +1758,7 @@
                   <input class="bk-input" name="email" type="email" placeholder="Email" required />
                 </div>
                 <input class="bk-input" name="eventName" placeholder="Event name" required />
-                <label class="bk-label" for="bk-date">Date</label>
-                <input class="bk-input" name="eventDate" id="bk-date" type="date" required style="color-scheme:dark;" />
+                <input class="bk-input" name="eventDate" type="text" required placeholder="Date" onfocus="this.type='date';this.style.colorScheme='dark';" />
                 <div class="bk-budget-row">
                   <input class="bk-input" name="budget" type="number" min="0" placeholder="Budget" />
                   <select class="bk-select" name="currency">
