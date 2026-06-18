@@ -857,8 +857,8 @@
       width: auto; max-width: none;
       object-fit: contain; object-position: left bottom; display: block;
       border: none; background: none; filter: none;
-      -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%);
-      mask-image: linear-gradient(to top, transparent 0%, black 40%);
+      -webkit-mask-image: linear-gradient(to top, transparent 0%, black 33%, black 100%);
+      mask-image: linear-gradient(to top, transparent 0%, black 33%, black 100%);
     }
     .slide-intro .a-photo-wrap::after {
       content: '';
@@ -880,7 +880,7 @@
       text-transform: uppercase; line-height: 0.92;
     }
     .slide-intro .a-desc {
-      font-size: 1.1rem; line-height: 1.6; color: rgba(242,242,242,0.85);
+      font-size: clamp(1.1rem, 1.4vw, 1.35rem); line-height: 1.65; color: rgba(242,242,242,0.85);
       max-width: 56ch;
     }
     .a-contacts {
@@ -1104,7 +1104,7 @@
   <nav class="topnav">
     <!-- Clickable home logo (top-left). Falls back to HEAVY wordmark if logo.png is missing. -->
     <button class="brand" onclick="showTab('welcome')" aria-label="Home — Welcome">
-      <img class="home-logo" src="logo.png" alt="HEAVY"
+      <img class="home-logo" src="/logo.png" alt="HEAVY"
            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
       <span class="brand-text" style="display:none;">HEAVY</span>
     </button>
@@ -1281,7 +1281,7 @@
 
       <!-- Left column (desktop) / frosted background (mobile): event poster -->
       <div class="co-left">
-        <img class="co-poster" id="co-poster" src="event-poster.png" alt="Event poster" />
+        <img class="co-poster" id="co-poster" src="/event-poster.png" alt="Event poster" />
       </div>
 
       <!-- Right column: event info + purchase form -->
@@ -1616,7 +1616,7 @@
       rows.innerHTML = EVENTS.map((ev, i) => `
         <article class="ev-card reveal" onclick="openGallery(${i})"
                  tabindex="0" role="button" aria-label="${ev.name} — open gallery">
-          <img class="ev-cover" src="${ev.cover}" alt="${ev.name}" loading="lazy"
+          <img class="ev-cover" src="/${ev.cover}" alt="${ev.name}" loading="lazy"
                onerror="coverFallback(this, ${i})" />
           <div class="ev-meta">
             <div class="ev-name">${ev.name}</div>
