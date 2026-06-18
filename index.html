@@ -814,27 +814,29 @@
     .artist-back:hover { background: var(--fg); color: #0D0D0D; }
 
     .artist-slides { position: relative; }
-    .artist-slide {
-      position: sticky;
-      top: var(--nav-h);
-      min-height: calc(100dvh - var(--nav-h));
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 0;
-    }
 
-    /* Slide 1 — Intro: blurred looping video bg + free-standing PNG */
-    .slide-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0D0D0D; }
-    .slide-bg video {
+    /* Persistent video background behind ALL slides */
+    .artist-slides-bg { position: fixed; top: var(--nav-h); left: 0; right: 0; bottom: 0; z-index: 0; overflow: hidden; background: #0D0D0D; }
+    .artist-slides-bg video {
       width: 100%; height: 100%; object-fit: cover;
       filter: blur(2.5px) brightness(0.7);
       transform: scale(1.04);
     }
-    .slide-bg-overlay {
+    .artist-slides-bg .slide-bg-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(rgba(13,13,13,0.35), rgba(13,13,13,0.55));
+    }
+
+    .artist-slide {
+      position: sticky;
+      top: var(--nav-h);
+      min-height: calc(100dvh - var(--nav-h));
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0;
+      z-index: 1;
     }
     .slide-intro {
       position: relative; z-index: 1;
@@ -856,6 +858,8 @@
       width: auto; max-width: none;
       object-fit: contain; object-position: left bottom; display: block;
       border: none; background: none; filter: none;
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
     }
     .slide-intro .a-info {
       display: flex; flex-direction: column; justify-content: center; gap: 24px;
@@ -889,7 +893,11 @@
     .a-contact-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* Slides 2 & 3 get inner padding (slide 1 is edge-to-edge for the photo) */
-    .artist-slide:not(:first-child) { padding: clamp(40px, 5vw, 80px); }
+    .artist-slide:not(:first-child) {
+      padding: clamp(40px, 5vw, 80px);
+      background: rgba(13,13,13,0.55);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1700,9 +1708,9 @@
         return html;
       })();
 
-      // Slide 1 blurred looping background video (optional per-artist).
-      const introBgHtml = a.introVideo
-        ? `<div class="slide-bg">
+      // Persistent blurred background video behind ALL artist slides.
+      const slidesBgHtml = a.introVideo
+        ? `<div class="artist-slides-bg">
              <video autoplay muted loop playsinline src="/${a.introVideo}"></video>
              <div class="slide-bg-overlay"></div>
            </div>`
@@ -1713,9 +1721,9 @@
       const hasSlide3 = riderHtml || true; // always show form
 
       document.getElementById('artist-slides').innerHTML = `
+        ${slidesBgHtml}
         <!-- SLIDE 1 — Intro -->
         <div class="artist-slide">
-          ${introBgHtml}
           <div class="slide-intro">
             <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
             <div class="a-info">
@@ -1784,6 +1792,7 @@
       const detail = document.getElementById('artist-detail');
       const wasOpen = detail.style.display !== 'none';
       detail.style.display = 'none';
+      document.getElementById('artist-slides').innerHTML = '';
       document.getElementById('artists-list').style.display = 'block';
       // Only touch history when the user explicitly closed an open detail
       // (showTab() also calls closeArtist() on every tab switch).
