@@ -10,6 +10,9 @@
   # YouTube video feed (cached RSS proxy)
   RewriteRule ^api/youtube/?$          /api/youtube.php          [L,QSA]
 
+  # Booking form submission
+  RewriteRule ^api/booking/?$          /api/booking.php          [L,QSA]
+
   # Event info for the checkout modal
   RewriteRule ^api/event/?$            /api/event.php            [L,QSA]
 
@@ -26,6 +29,7 @@
   RewriteRule ^tickets/?$              /index.html                [L,QSA]
   RewriteRule ^photos/?$               /index.html                [L,QSA]
   RewriteRule ^booking/?$              /index.html                [L,QSA]
+  RewriteRule ^booking/[a-zA-Z0-9_-]+/?$ /index.html             [L,QSA]
 
   # Pretty paths
   RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
