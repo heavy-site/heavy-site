@@ -1403,6 +1403,7 @@
         cardPhoto: 'artist-smolyakov.jpg',   // framed poster — Booking grid card only
         introVideo: 'smolyakov-bg.mp4', // placeholder — blurred looping bg for slide 1
         description: 'Yevhen is a DJ, producer and selector from Kharkiv with over 14 years of experience, specializing in riddim dubstep and being its main pusher in our country. He is a resident of the legendary Kharkiv underground club <a href="https://www.instagram.com/zhivotclub/" target="_blank" rel="noopener">Zhivot</a>, a participant of the main riddim dubstep event in Europe — <a href="https://www.instagram.com/space.invaderz.be/" target="_blank" rel="noopener">Space Invaderz</a> (Belgium), and founder of <a href="https://vaunitewithukraine.bandcamp.com/album/va-unite-with-ukraine" target="_blank" rel="noopener">Unite With Ukraine</a> project, which raised more than 200,000 UAH for the Armed Forces of Ukraine through a charity compilation featuring tracks from over 80 dubstep producers from around the world.',
+        descriptionUa: 'Євген — діджей, продюсер та селектор з Харкова з понад 14-річним досвідом, який спеціалізується на рідім дабстепі та є його головним двигуном у нашій країні. Він є резидентом легендарного харківського андеграундного клубу <a href="https://www.instagram.com/zhivotclub/" target="_blank" rel="noopener">Живот</a>, учасником головної рідім дабстеп події у Європі — <a href="https://www.instagram.com/space.invaderz.be/" target="_blank" rel="noopener">Space Invaderz</a> (Бельгія), та засновником проєкту <a href="https://vaunitewithukraine.bandcamp.com/album/va-unite-with-ukraine" target="_blank" rel="noopener">Unite With Ukraine</a>, який зібрав понад 200 000 грн для Збройних Сил України через благодійну компіляцію з треками від понад 80 дабстеп продюсерів з усього світу.',
         contacts: {
           telegram: 'https://t.me/smolyakov_evgeny',
           email: 'smolyakov96rrc@gmail.com',
@@ -1421,8 +1422,16 @@
           'Decks — Pioneer 1000MK1/MK2/2000NXS2/3000 — 2–3x',
           'Pioneer DJ XDJ-RR / XDJ-RX3 / XDJ-XZ / XDJ-AZ',
         ],
+        riderUa: [
+          'Мікшер — Pioneer DJM 800 і вище — 1x',
+          'Деки — Pioneer 1000MK1/MK2/2000NXS2/3000 — 2–3x',
+          'Pioneer DJ XDJ-RR / XDJ-RX3 / XDJ-XZ / XDJ-AZ',
+        ],
         nonTechRider: [
           '2x 1L still water (no gas)',
+        ],
+        nonTechRiderUa: [
+          '2x 1л негазованої води',
         ],
       },
     ];
@@ -1444,8 +1453,11 @@
         'ph-email': 'Email', 'ph-first': 'First name', 'ph-last': 'Last name',
         'ph-eyebrow': 'Archive', 'ph-headline': 'Photos', 'back': '← Back', 'download': 'Download',
         'bk-eyebrow': 'Roster', 'bk-headline': 'Booking',
-        'bk-rider': 'Technical Rider', 'bk-form-title': 'Booking Request',
+        'bk-rider': 'Technical Rider', 'bk-nontech-rider': 'Non-Technical Rider', 'bk-form-title': 'Booking Request',
         'bk-send': 'Send Request', 'bk-success': 'Request sent! We will contact you soon.',
+        'bk-ph-first': 'First name', 'bk-ph-last': 'Last name', 'bk-ph-phone': 'Phone number',
+        'bk-ph-email': 'Email', 'bk-ph-event': 'Event name', 'bk-ph-date': 'Date',
+        'bk-ph-budget': 'Budget', 'bk-ph-comment': 'Comment / details',
         'footer': '© 2025 · Alter Ego — Part 2',
       },
       ua: {
@@ -1461,8 +1473,11 @@
         'ph-email': 'Email', 'ph-first': "Ім'я", 'ph-last': 'Прізвище',
         'ph-eyebrow': 'Архів', 'ph-headline': 'Фото', 'back': '← Назад', 'download': 'Завантажити',
         'bk-eyebrow': 'Резиденти', 'bk-headline': 'Букінг',
-        'bk-rider': 'Технічний райдер', 'bk-form-title': 'Запит на букінг',
+        'bk-rider': 'Технічний райдер', 'bk-nontech-rider': 'Нетехнічний райдер', 'bk-form-title': 'Запит на букінг',
         'bk-send': 'Надіслати запит', 'bk-success': 'Запит надіслано! Ми зв\'яжемось з вами найближчим часом.',
+        'bk-ph-first': "Ім'я", 'bk-ph-last': 'Прізвище', 'bk-ph-phone': 'Номер телефону',
+        'bk-ph-email': 'Email', 'bk-ph-event': 'Назва події', 'bk-ph-date': 'Дата',
+        'bk-ph-budget': 'Бюджет', 'bk-ph-comment': 'Коментар / деталі',
         'footer': '© 2025 · Alter Ego — Part 2',
       },
     };
@@ -1482,6 +1497,15 @@
       document.querySelectorAll('[data-i18n-ph]').forEach(el => {
         const key = el.getAttribute('data-i18n-ph');
         if (i18n[lang][key] !== undefined) el.setAttribute('placeholder', i18n[lang][key]);
+      });
+      // Artist description (HTML with links)
+      document.querySelectorAll('.a-desc[data-desc-en]').forEach(el => {
+        el.innerHTML = lang === 'ua' ? el.getAttribute('data-desc-ua') : el.getAttribute('data-desc-en');
+      });
+      // Rider lists
+      document.querySelectorAll('.rider-list[data-rider-en]').forEach(el => {
+        const items = JSON.parse(decodeURIComponent(lang === 'ua' ? el.getAttribute('data-rider-ua') : el.getAttribute('data-rider-en')));
+        el.innerHTML = items.map(r => '<li>' + r + '</li>').join('');
       });
       document.documentElement.lang = lang === 'ua' ? 'uk' : 'en';
     }
@@ -1727,7 +1751,7 @@
             <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
             <div class="a-info">
               <h2 class="a-artist-name">${a.name}</h2>
-              <p class="a-desc">${a.description || ''}</p>
+              <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
             </div>
           </div>
@@ -1745,33 +1769,33 @@
         <div class="artist-slide">
           <div class="slide-rider-form">
             <div class="rider-section">
-              <h3>Technical Rider</h3>
-              ${riderHtml ? '<ul class="rider-list">' + riderHtml + '</ul>' : '<p style="color:var(--muted)">No rider info available.</p>'}
-              ${nonTechRiderHtml ? '<h3 style="margin-top:32px;">Non-Technical Rider</h3><ul class="rider-list">' + nonTechRiderHtml + '</ul>' : ''}
+              <h3 data-i18n="bk-rider">Technical Rider</h3>
+              ${riderHtml ? '<ul class="rider-list" data-rider-en="' + encodeURIComponent(JSON.stringify(a.rider || [])) + '" data-rider-ua="' + encodeURIComponent(JSON.stringify(a.riderUa || a.rider || [])) + '">' + (currentLang === 'ua' && a.riderUa ? a.riderUa.map(r => '<li>' + r + '</li>').join('') : riderHtml) + '</ul>' : '<p style="color:var(--muted)">No rider info available.</p>'}
+              ${nonTechRiderHtml ? '<h3 style="margin-top:32px;" data-i18n="bk-nontech-rider">Non-Technical Rider</h3><ul class="rider-list" data-rider-en="' + encodeURIComponent(JSON.stringify(a.nonTechRider || [])) + '" data-rider-ua="' + encodeURIComponent(JSON.stringify(a.nonTechRiderUa || a.nonTechRider || [])) + '">' + (currentLang === 'ua' && a.nonTechRiderUa ? a.nonTechRiderUa.map(r => '<li>' + r + '</li>').join('') : nonTechRiderHtml) + '</ul>' : ''}
             </div>
             <div class="booking-form-section">
-              <h3>Booking Request</h3>
+              <h3 data-i18n="bk-form-title">Booking Request</h3>
               <form class="bk-form" id="bk-form" onsubmit="submitBooking(event, '${a.slug || ''}')">
                 <div class="bk-form-row">
-                  <input class="bk-input" name="firstName" placeholder="First name" required />
-                  <input class="bk-input" name="lastName" placeholder="Last name" required />
+                  <input class="bk-input" name="firstName" data-i18n-ph="bk-ph-first" placeholder="${currentLang === 'ua' ? "Ім'я" : 'First name'}" required />
+                  <input class="bk-input" name="lastName" data-i18n-ph="bk-ph-last" placeholder="${currentLang === 'ua' ? 'Прізвище' : 'Last name'}" required />
                 </div>
                 <div class="bk-form-row">
-                  <input class="bk-input" name="phone" type="tel" placeholder="Phone number" />
-                  <input class="bk-input" name="email" type="email" placeholder="Email" required />
+                  <input class="bk-input" name="phone" type="tel" data-i18n-ph="bk-ph-phone" placeholder="${currentLang === 'ua' ? 'Номер телефону' : 'Phone number'}" />
+                  <input class="bk-input" name="email" type="email" data-i18n-ph="bk-ph-email" placeholder="Email" required />
                 </div>
-                <input class="bk-input" name="eventName" placeholder="Event name" required />
-                <input class="bk-input" name="eventDate" type="text" required placeholder="Date" onfocus="this.type='date';this.style.colorScheme='dark';" />
+                <input class="bk-input" name="eventName" data-i18n-ph="bk-ph-event" placeholder="${currentLang === 'ua' ? 'Назва події' : 'Event name'}" required />
+                <input class="bk-input" name="eventDate" type="text" required data-i18n-ph="bk-ph-date" placeholder="${currentLang === 'ua' ? 'Дата' : 'Date'}" onfocus="this.type='date';this.style.colorScheme='dark';" />
                 <div class="bk-budget-row">
-                  <input class="bk-input" name="budget" type="number" min="0" placeholder="Budget" />
+                  <input class="bk-input" name="budget" type="number" min="0" data-i18n-ph="bk-ph-budget" placeholder="${currentLang === 'ua' ? 'Бюджет' : 'Budget'}" />
                   <select class="bk-select" name="currency">
                     <option value="UAH">UAH</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                   </select>
                 </div>
-                <textarea class="bk-textarea" name="comment" placeholder="Comment / details" rows="3"></textarea>
-                <button class="bk-submit" type="submit">Send Request</button>
+                <textarea class="bk-textarea" name="comment" data-i18n-ph="bk-ph-comment" placeholder="${currentLang === 'ua' ? 'Коментар / деталі' : 'Comment / details'}" rows="3"></textarea>
+                <button class="bk-submit" type="submit" data-i18n="bk-send">${currentLang === 'ua' ? 'Надіслати запит' : 'Send Request'}</button>
                 <div class="bk-msg" id="bk-msg"></div>
               </form>
             </div>
