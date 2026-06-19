@@ -911,19 +911,16 @@
     .a-info-dark .a-desc a { color: #0D0D0D; }
     .artist-slides.no-overlay .rider-section h3,
     .artist-slides.no-overlay .booking-form-section h3 { color: #0D0D0D; }
-    .slide-media-embeds-only {
-      grid-template-columns: 1fr 1fr;
-      align-items: stretch;
+    .slide-media-split {
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: start;
     }
-    .slide-media-embeds-only > .a-embeds {
+    .slide-media-split .split-left {
       display: flex; flex-direction: column; gap: 24px;
     }
-    .slide-media-embeds-only > .a-embeds > .a-embed-wrap {
-      flex: 1; display: flex; flex-direction: column;
-    }
-    .slide-media-embeds-only > .a-embeds > .a-embed-wrap iframe {
-      flex: 1;
-    }
+    .slide-media-split .split-left .a-embed-wrap { flex: 1; display: flex; flex-direction: column; }
+    .slide-media-split .split-left .a-embed-wrap iframe { flex: 1; }
+    .slide-media-split .split-right .a-embeds { margin-top: 24px; }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1821,16 +1818,15 @@
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
-              ${scUnderLinks && linksHtml ? '<div class="a-links" style="margin-top:24px;">' + linksHtml + '</div>' : ''}
             </div>
           </div>
         </div>
 
         <!-- SLIDE 2 — Media -->
         <div class="artist-slide">
-          <div class="slide-media-content ${scUnderLinks ? 'slide-media-embeds-only' : ''}">
+          <div class="slide-media-content ${scUnderLinks ? 'slide-media-split' : ''}">
             ${scUnderLinks
-              ? '<div class="a-embeds">' + youtubeHtml + '</div><div class="a-embeds">' + scEmbedsHtml + '</div>'
+              ? '<div class="a-embeds split-left">' + youtubeHtml + '</div><div class="split-right"><div class="a-links">' + linksHtml + '</div><div class="a-embeds" style="margin-top:24px;">' + scEmbedsHtml + '</div></div>'
               : '<div><div class="a-links">' + linksHtml + '</div></div>' + (rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : '')
             }
           </div>
