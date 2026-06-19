@@ -902,6 +902,16 @@
       background: rgba(13,13,13,0.55);
       backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
+    .artist-slides.no-overlay .artist-slide:not(:first-child) {
+      background: transparent;
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+    }
+    .a-info-dark .a-artist-name { color: #0D0D0D; }
+    .a-info-dark .a-desc { color: rgba(0,0,0,0.8); }
+    .a-info-dark .a-desc a { color: #0D0D0D; }
+    .slide-media-embeds-only {
+      grid-template-columns: 1fr 1fr;
+    }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1756,10 +1766,15 @@
           </a>`).join('');
 
       // YouTube on TOP, SoundCloud on BOTTOM (per spec).
-      const embedsHtml = (() => {
+      // SoundCloud embeds go under the link buttons for array-style configs.
+      const youtubeHtml = (() => {
+        const e = a.embeds || {};
+        if (!e.youtube) return '';
+        return `<div class="a-embed-wrap"><div class="a-embed-label">YouTube</div><iframe height="400" src="${e.youtube}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+      })();
+      const scEmbedsHtml = (() => {
         const e = a.embeds || {};
         let html = '';
-        if (e.youtube) html += `<div class="a-embed-wrap"><div class="a-embed-label">YouTube</div><iframe height="400" src="${e.youtube}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
         if (Array.isArray(e.soundcloud)) {
           e.soundcloud.forEach(sc => { html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud · ${sc.label}</div><iframe height="220" scrolling="no" allow="autoplay" src="${sc.src}"></iframe></div>`; });
         } else if (e.soundcloud) {
@@ -1767,6 +1782,8 @@
         }
         return html;
       })();
+      const scUnderLinks = Array.isArray((a.embeds || {}).soundcloud);
+      const rightEmbedsHtml = scUnderLinks ? youtubeHtml : (youtubeHtml + scEmbedsHtml);
 
       // Persistent background behind ALL artist slides (video or solid color).
       const slidesBgHtml = a.introVideo
@@ -1775,9 +1792,7 @@
              <div class="slide-bg-overlay"></div>
            </div>`
         : a.introBgColor
-        ? `<div class="artist-slides-bg" style="background:${a.introBgColor};">
-             <div class="slide-bg-overlay"></div>
-           </div>`
+        ? `<div class="artist-slides-bg" style="background:${a.introBgColor};"></div>`
         : '';
 
       // ── Slide 3: Rider + form ──
@@ -1785,25 +1800,30 @@
       const nonTechRiderHtml = (a.nonTechRider || []).map(r => `<li>${r}</li>`).join('');
       const hasSlide3 = riderHtml || true; // always show form
 
-      document.getElementById('artist-slides').innerHTML = `
+      const slidesEl = document.getElementById('artist-slides');
+      slidesEl.classList.toggle('no-overlay', !!a.introBgColor);
+      slidesEl.innerHTML = `
         ${slidesBgHtml}
         <!-- SLIDE 1 — Intro -->
         <div class="artist-slide">
           <div class="slide-intro">
             <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
-            <div class="a-info">
+            <div class="a-info ${a.introBgColor ? 'a-info-dark' : ''}">
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
+              ${scUnderLinks && linksHtml ? '<div class="a-links" style="margin-top:24px;">' + linksHtml + '</div>' : ''}
             </div>
           </div>
         </div>
 
         <!-- SLIDE 2 — Media -->
         <div class="artist-slide">
-          <div class="slide-media-content">
-            <div class="a-links">${linksHtml}</div>
-            ${embedsHtml ? '<div class="a-embeds">' + embedsHtml + '</div>' : ''}
+          <div class="slide-media-content ${scUnderLinks ? 'slide-media-embeds-only' : ''}">
+            ${scUnderLinks
+              ? '<div class="a-embeds">' + youtubeHtml + '</div><div class="a-embeds">' + scEmbedsHtml + '</div>'
+              : '<div><div class="a-links">' + linksHtml + '</div></div>' + (rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : '')
+            }
           </div>
         </div>
 
@@ -1856,7 +1876,9 @@
       const detail = document.getElementById('artist-detail');
       const wasOpen = detail.style.display !== 'none';
       detail.style.display = 'none';
-      document.getElementById('artist-slides').innerHTML = '';
+      const slidesEl = document.getElementById('artist-slides');
+      slidesEl.innerHTML = '';
+      slidesEl.classList.remove('no-overlay');
       document.getElementById('artists-list').style.display = 'block';
       // Only touch history when the user explicitly closed an open detail
       // (showTab() also calls closeArtist() on every tab switch).
