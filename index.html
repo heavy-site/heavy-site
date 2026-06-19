@@ -1158,14 +1158,14 @@
       pointer-events: all;
     }
     .logo-transition.leaving {
-      animation: logoOverlayOut 0.4s ease 0.15s forwards;
+      animation: logoOverlayOut 0.5s ease forwards;
     }
     .logo-transition-img {
       width: 80vmin; height: 80vmin;
       object-fit: contain;
     }
     .logo-transition.leaving .logo-transition-img {
-      animation: logoIconOut 0.3s ease forwards;
+      animation: logoIconOut 0.5s ease forwards;
     }
     @keyframes logoOverlayOut {
       0%   { opacity: 1; }
@@ -1820,9 +1820,8 @@
       setTimeout(() => {
         openArtist(i);
         overlay.classList.add('leaving');
-        overlay.classList.remove('active');
         overlay.addEventListener('animationend', function handler() {
-          overlay.classList.remove('leaving');
+          overlay.classList.remove('active', 'leaving');
           overlay.removeEventListener('animationend', handler);
         });
       }, 300);
