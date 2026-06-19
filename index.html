@@ -913,15 +913,19 @@
     .artist-slides.no-overlay .booking-form-section h3 { color: #0D0D0D; }
     .slide-media-content.slide-media-split {
       max-width: none;
-      grid-template-columns: 2fr 1fr;
-      align-items: start;
+      grid-template-columns: 1.6fr 1fr;
+      align-items: stretch;
     }
     .slide-media-split .split-left {
-      display: flex; flex-direction: column; gap: 24px;
+      display: flex; flex-direction: column;
     }
     .slide-media-split .split-left .a-embed-wrap { flex: 1; display: flex; flex-direction: column; }
     .slide-media-split .split-left .a-embed-wrap iframe { flex: 1; min-height: 480px; }
-    .slide-media-split .split-right .a-embeds { margin-top: 24px; }
+    .slide-media-split .split-right {
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    .slide-media-split .split-right .a-embed-wrap { flex: 1; display: flex; flex-direction: column; }
+    .slide-media-split .split-right .a-embed-wrap iframe { flex: 1; }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
