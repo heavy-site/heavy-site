@@ -1367,14 +1367,46 @@
       {
         name: 'Artem',
         slug: 'artem',
-        photo: 'artist-artem.jpg',
-        description: 'A nu era EDM artist.',
+        photo: 'artist-photo-artem.png',
+        cardPhoto: 'artist-artem.jpg',
+        introBgColor: '#E50914',
+        description: 'Artem is a new-era EDM artist with a heavy breakbeat sound and harsh sound design. At just 16, he has already performed at JMP and HEAVY events with his standout sound. Artem has already dropped several EPs on his SoundCloud and other tracks on distribution, with much more to come in the future.',
+        descriptionUa: 'Артем — артист EDM нової ери з важким брейкбіт звуком та жорстким саунд-дизайном. У свої 16 він вже виступав на івентах JMP та HEAVY зі своїм особливим звучанням. Артем вже випустив кілька EP на SoundCloud та інші треки на дистрибуції, і попереду ще багато нового.',
+        contacts: {
+          telegram: 'https://t.me/placeholder_artem',
+          email: 'artem@placeholder.com',
+        },
         links: {
           soundcloud: 'https://soundcloud.com/geturliferuined',
           spotify:    'https://open.spotify.com/artist/2WacirhGuKdJFqQDpjXxlO?si=eoW37WAkShiET6LDreroLw',
           applemusic: 'https://music.apple.com/ua/artist/artem/1857377048',
           instagram:  'https://www.instagram.com/internetkiddd_/',
         },
+        embeds: {
+          youtube: 'https://www.youtube.com/embed/xs30jEZNhy0',
+          soundcloud: [
+            { label: 'Album', src: 'https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/geturliferuined/sets/wwwgeturliferuined&color=%23262626&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true' },
+            { label: 'Mix', src: 'https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/heavy_rave/heavy-alter-ego-artem-mix&color=%23262626&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true' },
+          ],
+        },
+        rider: [
+          'Mixer — Pioneer DJM 800 and higher — 1x',
+          'Decks — Pioneer 1000MK1/MK2/2000NXS2/3000 — 2–3x',
+          'Pioneer DJ XDJ-RR / XDJ-RX3 / XDJ-XZ / XDJ-AZ',
+        ],
+        riderUa: [
+          'Мікшер — Pioneer DJM 800 і вище — 1x',
+          'Деки — Pioneer 1000MK1/MK2/2000NXS2/3000 — 2–3x',
+          'Pioneer DJ XDJ-RR / XDJ-RX3 / XDJ-XZ / XDJ-AZ',
+        ],
+        nonTechRider: [
+          '2x 1L still water (no gas)',
+          '2x Pepsi (bottles)',
+        ],
+        nonTechRiderUa: [
+          '2x 1л негазованої води',
+          '2x Pepsi (пляшки)',
+        ],
       },
       {
         name: 'Etoyle',
@@ -1728,14 +1760,22 @@
         const e = a.embeds || {};
         let html = '';
         if (e.youtube) html += `<div class="a-embed-wrap"><div class="a-embed-label">YouTube</div><iframe height="400" src="${e.youtube}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-        if (e.soundcloud) html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud</div><iframe height="220" scrolling="no" allow="autoplay" src="${e.soundcloud}"></iframe></div>`;
+        if (Array.isArray(e.soundcloud)) {
+          e.soundcloud.forEach(sc => { html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud · ${sc.label}</div><iframe height="220" scrolling="no" allow="autoplay" src="${sc.src}"></iframe></div>`; });
+        } else if (e.soundcloud) {
+          html += `<div class="a-embed-wrap"><div class="a-embed-label">SoundCloud</div><iframe height="220" scrolling="no" allow="autoplay" src="${e.soundcloud}"></iframe></div>`;
+        }
         return html;
       })();
 
-      // Persistent blurred background video behind ALL artist slides.
+      // Persistent background behind ALL artist slides (video or solid color).
       const slidesBgHtml = a.introVideo
         ? `<div class="artist-slides-bg">
              <video autoplay muted loop playsinline src="/${a.introVideo}"></video>
+             <div class="slide-bg-overlay"></div>
+           </div>`
+        : a.introBgColor
+        ? `<div class="artist-slides-bg" style="background:${a.introBgColor};">
              <div class="slide-bg-overlay"></div>
            </div>`
         : '';
