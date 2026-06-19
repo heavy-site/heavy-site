@@ -1818,6 +1818,7 @@
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
+              ${scUnderLinks && linksHtml ? '<div class="a-links" style="margin-top:24px;">' + linksHtml + '</div>' : ''}
             </div>
           </div>
         </div>
@@ -1826,7 +1827,7 @@
         <div class="artist-slide">
           <div class="slide-media-content ${scUnderLinks ? 'slide-media-split' : ''}">
             ${scUnderLinks
-              ? '<div class="a-embeds split-left">' + youtubeHtml + '</div><div class="split-right"><div class="a-links">' + linksHtml + '</div><div class="a-embeds" style="margin-top:24px;">' + scEmbedsHtml + '</div></div>'
+              ? '<div class="a-embeds split-left">' + youtubeHtml + '</div><div class="a-embeds split-right">' + scEmbedsHtml + '</div>'
               : '<div><div class="a-links">' + linksHtml + '</div></div>' + (rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : '')
             }
           </div>
