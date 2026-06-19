@@ -1143,9 +1143,59 @@
         -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
       }
     }
+    /* ══════════════════════════════════════════════════
+       LOGO TRANSITION OVERLAY
+    ══════════════════════════════════════════════════ */
+    .logo-transition {
+      position: fixed; inset: 0; z-index: 99999;
+      display: flex; align-items: center; justify-content: center;
+      background: #000;
+      opacity: 0; pointer-events: none;
+      transition: none;
+    }
+    .logo-transition.active {
+      pointer-events: all;
+      animation: logoOverlayIn 0.4s ease forwards;
+    }
+    .logo-transition.leaving {
+      animation: logoOverlayOut 0.35s ease forwards;
+    }
+    .logo-transition-img {
+      width: 120px; height: 120px;
+      object-fit: contain;
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    .logo-transition.active .logo-transition-img {
+      animation: logoIconIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards;
+    }
+    .logo-transition.leaving .logo-transition-img {
+      animation: logoIconOut 0.25s ease forwards;
+    }
+    @keyframes logoOverlayIn {
+      0%   { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes logoOverlayOut {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes logoIconIn {
+      0%   { opacity: 0; transform: scale(0.6); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes logoIconOut {
+      0%   { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.15); }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Logo transition overlay -->
+  <div id="logo-transition" class="logo-transition">
+    <img src="/logo.png" alt="" class="logo-transition-img" />
+  </div>
 
   <!-- ════════════════════════════ TOP NAV ════════════════════════════ -->
   <nav class="topnav">
@@ -1767,13 +1817,28 @@
     function buildArtists() {
       const grid = document.getElementById('artists-grid');
       grid.innerHTML = ARTISTS.map((a, i) => `
-        <div class="artist-card" onclick="openArtist(${i})">
+        <div class="artist-card" onclick="openArtistWithTransition(${i})">
           <img src="/${a.cardPhoto || a.photo}" alt="${a.name}" loading="lazy"
                onload="this.classList.add('loaded')"
                onerror="this.closest('.artist-card').classList.add('no-photo')" />
           <span class="a-idx">${String(i + 1).padStart(2, '0')}</span>
           <span class="a-name">${a.name}</span>
         </div>`).join('');
+    }
+
+    function openArtistWithTransition(i) {
+      const overlay = document.getElementById('logo-transition');
+      overlay.classList.remove('leaving');
+      overlay.classList.add('active');
+      setTimeout(() => {
+        openArtist(i);
+        overlay.classList.add('leaving');
+        overlay.classList.remove('active');
+        overlay.addEventListener('animationend', function handler() {
+          overlay.classList.remove('leaving');
+          overlay.removeEventListener('animationend', handler);
+        });
+      }, 700);
     }
 
     function openArtist(i) {
