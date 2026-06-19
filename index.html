@@ -913,6 +913,16 @@
     .artist-slides.no-overlay .booking-form-section h3 { color: #0D0D0D; }
     .slide-media-embeds-only {
       grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+    }
+    .slide-media-embeds-only > .a-embeds {
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    .slide-media-embeds-only > .a-embeds > .a-embed-wrap {
+      flex: 1; display: flex; flex-direction: column;
+    }
+    .slide-media-embeds-only > .a-embeds > .a-embed-wrap iframe {
+      flex: 1;
     }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
@@ -1384,10 +1394,7 @@
         introBgColor: '#FF0000',
         description: 'Artem is a new-era EDM artist with a heavy breakbeat sound and harsh sound design. At just 16, he has already performed at JMP and HEAVY events with his standout sound. Artem has already dropped several EPs on his SoundCloud and other tracks on distribution, with much more to come in the future.',
         descriptionUa: 'Артем — артист EDM нової ери з важким брейкбіт звуком та жорстким саунд-дизайном. У свої 16 він вже виступав на івентах JMP та HEAVY зі своїм особливим звучанням. Артем вже випустив кілька EP на SoundCloud та інші треки на дистрибуції, і попереду ще багато нового.',
-        contacts: {
-          telegram: 'https://t.me/placeholder_artem',
-          email: 'artem@placeholder.com',
-        },
+        contacts: {},
         links: {
           soundcloud: 'https://soundcloud.com/geturliferuined',
           spotify:    'https://open.spotify.com/artist/2WacirhGuKdJFqQDpjXxlO?si=eoW37WAkShiET6LDreroLw',
