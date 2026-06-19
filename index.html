@@ -911,19 +911,21 @@
     .a-info-dark .a-desc a { color: #0D0D0D; }
     .artist-slides.no-overlay .rider-section h3,
     .artist-slides.no-overlay .booking-form-section h3 { color: #0D0D0D; }
-    .slide-media-embeds-only {
-      grid-template-columns: 1fr 1fr;
+    .slide-media-content.slide-media-split {
+      max-width: none;
+      grid-template-columns: 1.6fr 1fr;
       align-items: stretch;
     }
-    .slide-media-embeds-only > .a-embeds {
+    .slide-media-split .split-left {
+      display: flex; flex-direction: column;
+    }
+    .slide-media-split .split-left .a-embed-wrap { flex: 1; display: flex; flex-direction: column; }
+    .slide-media-split .split-left .a-embed-wrap iframe { flex: 1; min-height: 480px; }
+    .slide-media-split .split-right {
       display: flex; flex-direction: column; gap: 24px;
     }
-    .slide-media-embeds-only > .a-embeds > .a-embed-wrap {
-      flex: 1; display: flex; flex-direction: column;
-    }
-    .slide-media-embeds-only > .a-embeds > .a-embed-wrap iframe {
-      flex: 1;
-    }
+    .slide-media-split .split-right .a-embed-wrap { flex: 1; display: flex; flex-direction: column; }
+    .slide-media-split .split-right .a-embed-wrap iframe { flex: 1; }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1828,9 +1830,9 @@
 
         <!-- SLIDE 2 — Media -->
         <div class="artist-slide">
-          <div class="slide-media-content ${scUnderLinks ? 'slide-media-embeds-only' : ''}">
+          <div class="slide-media-content ${scUnderLinks ? 'slide-media-split' : ''}">
             ${scUnderLinks
-              ? '<div class="a-embeds">' + youtubeHtml + '</div><div class="a-embeds">' + scEmbedsHtml + '</div>'
+              ? '<div class="a-embeds split-left">' + youtubeHtml + '</div><div class="a-embeds split-right">' + scEmbedsHtml + '</div>'
               : '<div><div class="a-links">' + linksHtml + '</div></div>' + (rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : '')
             }
           </div>
