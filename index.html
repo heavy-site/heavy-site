@@ -906,6 +906,12 @@
       background: transparent;
       backdrop-filter: none; -webkit-backdrop-filter: none;
     }
+    .a-info-dark .a-artist-name { color: #0D0D0D; }
+    .a-info-dark .a-desc { color: rgba(0,0,0,0.8); }
+    .a-info-dark .a-desc a { color: #0D0D0D; }
+    .slide-media-embeds-only {
+      grid-template-columns: 1fr 1fr;
+    }
 
     /* Slide 2 — Media & socials: desktop = links left, players right (YT top, SC bottom) */
     .slide-media-content {
@@ -1802,22 +1808,22 @@
         <div class="artist-slide">
           <div class="slide-intro">
             <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
-            <div class="a-info">
+            <div class="a-info ${a.introBgColor ? 'a-info-dark' : ''}">
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
               ${contactsHtml ? '<div class="a-contacts">' + contactsHtml + '</div>' : ''}
+              ${scUnderLinks && linksHtml ? '<div class="a-links" style="margin-top:24px;">' + linksHtml + '</div>' : ''}
             </div>
           </div>
         </div>
 
         <!-- SLIDE 2 — Media -->
         <div class="artist-slide">
-          <div class="slide-media-content">
-            <div>
-              <div class="a-links">${linksHtml}</div>
-              ${scUnderLinks ? '<div class="a-embeds" style="margin-top:24px;">' + scEmbedsHtml + '</div>' : ''}
-            </div>
-            ${rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : ''}
+          <div class="slide-media-content ${scUnderLinks ? 'slide-media-embeds-only' : ''}">
+            ${scUnderLinks
+              ? '<div class="a-embeds">' + youtubeHtml + '</div><div class="a-embeds">' + scEmbedsHtml + '</div>'
+              : '<div><div class="a-links">' + linksHtml + '</div></div>' + (rightEmbedsHtml ? '<div class="a-embeds">' + rightEmbedsHtml + '</div>' : '')
+            }
           </div>
         </div>
 
