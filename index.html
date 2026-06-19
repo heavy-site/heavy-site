@@ -1154,35 +1154,22 @@
       transition: none;
     }
     .logo-transition.active {
+      opacity: 1;
       pointer-events: all;
-      animation: logoOverlayIn 0.12s ease forwards;
     }
     .logo-transition.leaving {
-      animation: logoOverlayOut 0.2s ease forwards;
+      animation: logoOverlayOut 0.4s ease 0.15s forwards;
     }
     .logo-transition-img {
       width: 80vmin; height: 80vmin;
       object-fit: contain;
-      transform: scale(0);
-      opacity: 0;
-    }
-    .logo-transition.active .logo-transition-img {
-      animation: logoIconIn 0.15s cubic-bezier(0, 0, 0.2, 1) 0.05s forwards;
     }
     .logo-transition.leaving .logo-transition-img {
-      animation: logoIconOut 0.12s ease-in forwards;
-    }
-    @keyframes logoOverlayIn {
-      0%   { opacity: 0; }
-      100% { opacity: 1; }
+      animation: logoIconOut 0.3s ease forwards;
     }
     @keyframes logoOverlayOut {
       0%   { opacity: 1; }
       100% { opacity: 0; }
-    }
-    @keyframes logoIconIn {
-      0%   { opacity: 0; transform: scale(0); }
-      100% { opacity: 1; transform: scale(1); }
     }
     @keyframes logoIconOut {
       0%   { opacity: 1; transform: scale(1); }
@@ -1838,7 +1825,7 @@
           overlay.classList.remove('leaving');
           overlay.removeEventListener('animationend', handler);
         });
-      }, 450);
+      }, 300);
     }
 
     function openArtist(i) {
