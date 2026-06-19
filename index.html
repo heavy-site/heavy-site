@@ -906,11 +906,40 @@
       background: transparent;
       backdrop-filter: none; -webkit-backdrop-filter: none;
     }
-    .a-info-dark .a-artist-name { color: #0D0D0D; }
-    .a-info-dark .a-desc { color: rgba(0,0,0,0.8); }
-    .a-info-dark .a-desc a { color: #0D0D0D; }
+    /* Red/black/white palette for colored-bg artist pages */
+    .a-info-dark .a-artist-name { color: #000; }
+    .a-info-dark .a-desc { color: rgba(0,0,0,0.85); }
+    .a-info-dark .a-desc a { color: #000; }
     .artist-slides.no-overlay .rider-section h3,
-    .artist-slides.no-overlay .booking-form-section h3 { color: #0D0D0D; }
+    .artist-slides.no-overlay .booking-form-section h3 { color: #000; }
+    .artist-slides.no-overlay .rider-list li {
+      background: rgba(0,0,0,0.75); border-left-color: #fff; color: #fff;
+    }
+    .artist-slides.no-overlay .a-links { background: #000; border-color: #000; }
+    .artist-slides.no-overlay .a-link { background: #000; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    .artist-slides.no-overlay .a-link:hover { background: #fff; color: #000; }
+    .artist-slides.no-overlay .a-embed-wrap { border-color: #000; background: #000; }
+    .artist-slides.no-overlay .a-embed-label { color: rgba(255,255,255,0.6); }
+    .artist-slides.no-overlay .bk-input,
+    .artist-slides.no-overlay .bk-select,
+    .artist-slides.no-overlay .bk-textarea {
+      background: rgba(0,0,0,0.7); border-color: rgba(255,255,255,0.2); color: #fff;
+    }
+    .artist-slides.no-overlay .bk-input::placeholder,
+    .artist-slides.no-overlay .bk-textarea::placeholder { color: rgba(255,255,255,0.5); }
+    .artist-slides.no-overlay .bk-input:focus,
+    .artist-slides.no-overlay .bk-select:focus,
+    .artist-slides.no-overlay .bk-textarea:focus { border-color: #fff; }
+    .artist-slides.no-overlay .bk-submit {
+      background: #fff; color: #000; border-color: #fff;
+    }
+    .artist-slides.no-overlay .bk-submit:hover {
+      background: #000; color: #fff; border-color: #000;
+    }
+    .artist-slides.no-overlay .a-contact-btn {
+      background: rgba(0,0,0,0.6); border-color: #000; color: #fff;
+    }
+    .artist-slides.no-overlay .a-contact-btn:hover { background: #fff; color: #000; }
     .slide-media-content.slide-media-split {
       max-width: none;
       grid-template-columns: 1.6fr 1fr;
