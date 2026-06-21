@@ -1200,7 +1200,7 @@
       <button class="tab" data-tab="photos" onclick="showTab('photos')">
         <span class="tab-full" data-i18n="nav-photos">Photos</span>
       </button>
-      <button class="tab" data-tab="booking" onclick="showTab('booking')">
+      <button class="tab" data-tab="booking" onclick="showTab('booking')" style="display:none;">
         <span class="tab-full" data-i18n="nav-booking">Booking</span>
       </button>
     </div>
@@ -1645,6 +1645,7 @@
     }
 
     function showTab(name, pushState) {
+      if (name === 'booking') { name = 'welcome'; }
       closeGallery();
       closeArtist();
       closeLightbox();
@@ -2371,10 +2372,11 @@
 
     // Open the tab matching the URL path (e.g. /tickets → tickets tab).
     var initSlug = parseBookingSlug(location.pathname);
-    var initTab = initSlug ? 'booking' : (PATH_TO_TAB[location.pathname] || 'welcome');
+    var initTab = (initSlug || location.pathname === '/booking') ? 'welcome' : (PATH_TO_TAB[location.pathname] || 'welcome');
     if (initTab !== 'welcome') {
       showTab(initTab, false);
-      if (initSlug) openArtistBySlug(initSlug);
+      // booking section hidden
+      // if (initSlug) openArtistBySlug(initSlug);
     } else {
       history.replaceState({ tab: 'welcome' }, '', '/');
     }
