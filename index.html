@@ -31,7 +31,7 @@
         fbq('track', eventName, customData, { eventID: eventId });
       }
     }
-    metaTrack('PageView');
+    // metaTrack('PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
@@ -1658,7 +1658,7 @@
       if (pushState !== false && TAB_PATHS[name] !== undefined) {
         history.pushState({ tab: name }, '', TAB_PATHS[name]);
       }
-      metaTrack('ViewContent', { content_name: 'tab:' + name });
+      // metaTrack('ViewContent', { content_name: 'tab:' + name });
     }
 
     window.addEventListener('popstate', function (e) {
@@ -1832,7 +1832,7 @@
       const a = ARTISTS[i];
       document.getElementById('artists-list').style.display = 'none';
       document.getElementById('artist-detail').style.display = 'block';
-      metaTrack('ViewContent', { content_name: 'artist:' + a.name });
+      // metaTrack('ViewContent', { content_name: 'artist:' + a.name });
 
       // Update URL to /booking/{slug}
       if (a.slug) {
@@ -1853,7 +1853,7 @@
         .filter(k => a.links[k])
         .map(k => `
           <a class="a-link" href="${a.links[k]}" target="_blank" rel="noopener"
-             onclick="metaTrack('Lead', { content_name: '${a.name} · ${PLATFORM_LABELS[k] || k}' })">
+>
             ${PLATFORM_ICONS[k] || ''}
             <span>${PLATFORM_LABELS[k] || k}</span>
             <span class="a-link-arrow">↗</span>
@@ -2005,7 +2005,7 @@
           msg.textContent = 'Request sent! We will contact you soon.';
           msg.className = 'bk-msg ok';
           form.reset();
-          metaTrack('Lead', { content_name: 'booking:' + artistSlug });
+          // metaTrack('Lead', { content_name: 'booking:' + artistSlug });
         } else {
           msg.textContent = res.error || 'Something went wrong.';
           msg.className = 'bk-msg err';
@@ -2036,7 +2036,7 @@
       currentEventName = ev.name;
       for (const k in lbPreload) delete lbPreload[k]; // drop previous album's preloads
 
-      metaTrack('ViewContent', { content_name: 'album:' + ev.name });
+      // metaTrack('ViewContent', { content_name: 'album:' + ev.name });
 
       if (!ev.pcloud || ev.pcloud.indexOf('PASTE_') === 0) {
         body.innerHTML = `<div class="gallery-status" data-i18n="ph-empty">No pCloud link set for this event yet.</div>`;
