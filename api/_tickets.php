@@ -61,6 +61,11 @@ function make_qr_png($text) {
 // Generate <quantity> signed tickets, store them, email them. Idempotent.
 function issue_tickets_and_email(&$order) {
   if (!empty($order['issued'])) return;
+  // Multi-ticket orders generate one TCPDF + QR per ticket (~15s each). The
+  // default 30s max_execution_time killed qty>=2 mid-loop with an uncatchable
+  // fatal — before RESEND ran — so tickets never sent and paid never persisted.
+  @set_time_limit(0);
+  @ini_set('memory_limit', '512M');
   $eventId = isset($order['ticket']) ? $order['ticket'] : 'alter-ego';
   $ev  = heavy_event($eventId) ?: heavy_event('alter-ego');
   $qty = max(1, (int)(isset($order['quantity']) ? $order['quantity'] : 1));
@@ -108,6 +113,7 @@ function send_ticket_email($order, $tickets, $ev) {
       if ($pdf !== '' && $pdf !== null) {
         $attachments[] = ['filename' => 'ticket-' . $t['index'] . '.pdf', 'content' => base64_encode($pdf), 'content_type' => 'application/pdf'];
       }
+      unset($pdf);  // free the PDF buffer before generating the next ticket
     } catch (\Throwable $e) {
       error_log('[tickets] PDF generation failed for ' . $t['id'] . ': ' . $e->getMessage());
       if (function_exists('wlog')) wlog('PDF FAIL ' . $t['id'] . ': ' . $e->getMessage());
