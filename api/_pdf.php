@@ -8,7 +8,8 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
-  @ini_set('memory_limit', '256M');
+  @ini_set('memory_limit', '512M');
+  @set_time_limit(120);
 
   $pdf = new \TCPDF('L', 'mm', [210, 141], true, 'UTF-8', false);
   $pdf->SetCreator('HEAVY');
