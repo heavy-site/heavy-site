@@ -1200,7 +1200,7 @@
       <button class="tab" data-tab="photos" onclick="showTab('photos')">
         <span class="tab-full" data-i18n="nav-photos">Photos</span>
       </button>
-      <button class="tab" data-tab="booking" onclick="showTab('booking')" style="display:none;">
+      <button class="tab" data-tab="booking" onclick="showTab('booking')">
         <span class="tab-full" data-i18n="nav-booking">Booking</span>
       </button>
     </div>
@@ -1500,6 +1500,7 @@
       {
         name: 'Etoyle',
         slug: 'etoyle',
+        hidden: true, // temporarily hidden from grid + direct URL
         photo: 'artist-etoyle.jpg',
         description: 'Destruction kid',
         links: {
@@ -1668,7 +1669,6 @@
     }
 
     function showTab(name, pushState) {
-      if (name === 'booking') { name = 'welcome'; }
       closeGallery();
       closeArtist();
       closeLightbox();
@@ -1827,12 +1827,15 @@
 
     function buildArtists() {
       const grid = document.getElementById('artists-grid');
-      grid.innerHTML = ARTISTS.map((a, i) => `
+      grid.innerHTML = ARTISTS
+        .map((a, i) => ({ a, i }))
+        .filter(x => !x.a.hidden)
+        .map(({ a, i }, n) => `
         <div class="artist-card" onclick="openArtistWithTransition(${i})">
           <img src="/${a.cardPhoto || a.photo}" alt="${a.name}" loading="lazy"
                onload="this.classList.add('loaded')"
                onerror="this.closest('.artist-card').classList.add('no-photo')" />
-          <span class="a-idx">${String(i + 1).padStart(2, '0')}</span>
+          <span class="a-idx">${String(n + 1).padStart(2, '0')}</span>
           <span class="a-name">${a.name}</span>
         </div>`).join('');
     }
@@ -1986,7 +1989,7 @@
 
     function openArtistBySlug(slug) {
       const idx = ARTISTS.findIndex(a => a.slug === slug);
-      if (idx >= 0) openArtist(idx);
+      if (idx >= 0 && !ARTISTS[idx].hidden) openArtist(idx);
     }
 
     function closeArtist(updateUrl) {
@@ -2395,11 +2398,10 @@
 
     // Open the tab matching the URL path (e.g. /tickets → tickets tab).
     var initSlug = parseBookingSlug(location.pathname);
-    var initTab = (initSlug || location.pathname === '/booking') ? 'welcome' : (PATH_TO_TAB[location.pathname] || 'welcome');
+    var initTab = initSlug ? 'booking' : (PATH_TO_TAB[location.pathname] || 'welcome');
     if (initTab !== 'welcome') {
       showTab(initTab, false);
-      // booking section hidden
-      // if (initSlug) openArtistBySlug(initSlug);
+      if (initSlug) openArtistBySlug(initSlug);
     } else {
       history.replaceState({ tab: 'welcome' }, '', '/');
     }
