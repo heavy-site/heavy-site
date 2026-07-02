@@ -1911,7 +1911,7 @@
       // Persistent background behind ALL artist slides (video or solid color).
       const slidesBgHtml = a.introVideo
         ? `<div class="artist-slides-bg">
-             <video autoplay muted loop playsinline src="/${a.introVideo}"></video>
+             <video autoplay muted loop playsinline src="/${a.introVideo}" onended="this.currentTime=0;this.play();"></video>
              <div class="slide-bg-overlay"></div>
            </div>`
         : a.introBgColor
