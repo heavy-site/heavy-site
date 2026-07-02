@@ -863,6 +863,8 @@
       -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0) 10%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,1) 100%);
       mask-image: linear-gradient(to top, rgba(0,0,0,0) 10%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,1) 100%);
     }
+    .slide-intro .a-photo.a-photo-bw { filter: grayscale(1); }
+    .artist-card.card-bw img { filter: grayscale(1); }
     .slide-intro .a-info {
       display: flex; flex-direction: column; justify-content: center; gap: 24px;
       padding: clamp(28px, 5vw, 64px);
@@ -1514,6 +1516,7 @@
         slug: 'mad-cult',
         photo: 'artist-photo-mad-cult.png', // transparent cut-out — detail page
         cardPhoto: 'artist-mad-cult.jpg',   // framed poster — Booking grid card only
+        photoBw: true,                      // render photos in black & white
         introVideo: 'mad-cult-bg.mp4', // sample placeholder — replace with the full video
         description: 'Mad Cult is a leading EDM artist who unites a wide variety of artists and pushes the Ukrainian scene toward a new horizon. Mad Cult is the head of "Heavy" — the future of the Ukrainian heavy EDM scene.<br><br>Mad Cult\'s music is dark, heavy and angry — no limits. In 2026 he released an album of 10 multi-genre tracks across 10 different genres. Mad Cult has performed at a variety of Ukrainian events: Khovanka, JMP, Heavy, Charity Beats and more.<br><br>An artist who creates not only music, but entire worlds.',
         descriptionUa: 'Mad Cult — провідний EDM артист, який об\'єднує велике розмаїття артистів і штовхає українську сцену до нового горизонту. Mad Cult — голова «Heavy», майбутнього української важкої EDM сцени.<br><br>Музика Mad Cult темна, важка та зла — без обмежень. У 2026 році він випустив альбом із 10 мультижанрових треків у 10 різних жанрах. Mad Cult виступав на різноманітних українських івентах: Khovanka, JMP, Heavy, Charity Beats тощо.<br><br>Артист, який створює не лише музику, а цілі світи.',
@@ -1831,7 +1834,7 @@
         .map((a, i) => ({ a, i }))
         .filter(x => !x.a.hidden)
         .map(({ a, i }, n) => `
-        <div class="artist-card" onclick="openArtistWithTransition(${i})">
+        <div class="artist-card ${a.photoBw ? 'card-bw' : ''}" onclick="openArtistWithTransition(${i})">
           <img src="/${a.cardPhoto || a.photo}" alt="${a.name}" loading="lazy"
                onload="this.classList.add('loaded')"
                onerror="this.closest('.artist-card').classList.add('no-photo')" />
@@ -1927,7 +1930,7 @@
         <!-- SLIDE 1 — Intro -->
         <div class="artist-slide">
           <div class="slide-intro">
-            <div class="a-photo-wrap"><img class="a-photo" src="/${a.photo}" alt="${a.name}" /></div>
+            <div class="a-photo-wrap"><img class="a-photo ${a.photoBw ? 'a-photo-bw' : ''}" src="/${a.photo}" alt="${a.name}" /></div>
             <div class="a-info ${a.introBgColor ? 'a-info-dark' : ''}">
               <h2 class="a-artist-name">${a.name}</h2>
               <p class="a-desc" data-desc-en="${(a.description || '').replace(/"/g, '&quot;')}" data-desc-ua="${(a.descriptionUa || a.description || '').replace(/"/g, '&quot;')}">${currentLang === 'ua' ? (a.descriptionUa || a.description || '') : (a.description || '')}</p>
