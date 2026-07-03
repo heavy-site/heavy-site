@@ -1,6 +1,7 @@
 <?php
-/* booking.php — Receives booking form submissions.
-   Stores the request and can be extended to send email notifications. */
+/* booking.php — Receives artist booking form submissions.
+   Stores the request AND emails it to our inbox via Resend (_mail.php). */
+require __DIR__ . '/_mail.php';
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -52,4 +53,21 @@ $entry = [
 $filename = $dataDir . '/' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.json';
 file_put_contents($filename, json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
-echo json_encode(['ok' => true]);
+// ── Email the request to our inbox ──
+$name    = trim($entry['firstName'] . ' ' . $entry['lastName']);
+$budget  = $entry['budget'] !== '' ? ($entry['budget'] . ' ' . $entry['currency']) : '';
+$rows = mail_rows([
+  'Artist'     => $entry['artist'],
+  'Name'       => $name,
+  'Phone'      => $entry['phone'],
+  'Email'      => $entry['email'],
+  'Event name' => $entry['eventName'],
+  'Date'       => $entry['eventDate'],
+  'Budget'     => $budget,
+  'Comment'    => $entry['comment'],
+]);
+$subject = 'New Booking Request — ' . $name;
+$html    = mail_shell('New artist booking request' . ($entry['artist'] !== '' ? ' for ' . $entry['artist'] : ''), $rows);
+list($sent, $code, $resp) = resend_send($subject, $html, $entry['email']);
+
+echo json_encode(['ok' => true, 'emailed' => $sent]);

@@ -1022,6 +1022,8 @@
     }
 
     /* Booking form */
+    .apply-wrap { max-width: 640px; margin: 0 auto; }
+    .apply-intro { color: var(--muted); font-size: 0.95rem; line-height: 1.5; margin-top: 12px; max-width: 520px; }
     .bk-form {
       display: flex; flex-direction: column; gap: 12px;
     }
@@ -1205,6 +1207,9 @@
       <button class="tab" data-tab="booking" onclick="showTab('booking')">
         <span class="tab-full" data-i18n="nav-booking">Booking</span>
       </button>
+      <button class="tab" data-tab="apply" onclick="showTab('apply')">
+        <span class="tab-full" data-i18n="nav-apply">Apply</span>
+      </button>
     </div>
     <div class="lang" role="group" aria-label="Language">
       <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
@@ -1341,6 +1346,35 @@
         <div class="artist-slides" id="artist-slides"></div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- ════════════════════════════ TAB — APPLY (Play at our event) ════════════════════════════ -->
+  <section class="view" id="view-apply">
+    <div class="photos-wrap">
+      <div class="apply-wrap">
+        <div class="section-head" style="text-align:left;margin-bottom:32px;">
+          <p class="eyebrow" data-i18n="ap-eyebrow">DJs</p>
+          <h2 class="chrome-text" data-i18n="ap-headline">Play at our event</h2>
+          <p class="apply-intro" data-i18n="ap-intro">Want to play at HEAVY? Send us your info and a SoundCloud link — we listen to everything.</p>
+        </div>
+        <div class="booking-form-section">
+          <form class="bk-form" id="dj-form" onsubmit="submitDjApplication(event)">
+            <div class="bk-form-row">
+              <input class="bk-input" name="firstName" data-i18n-ph="ap-ph-first" placeholder="First name" required />
+              <input class="bk-input" name="lastName" data-i18n-ph="ap-ph-last" placeholder="Last name" required />
+            </div>
+            <div class="bk-form-row">
+              <input class="bk-input" name="age" type="number" min="1" max="120" data-i18n-ph="ap-ph-age" placeholder="Age" required />
+              <input class="bk-input" name="genres" data-i18n-ph="ap-ph-genres" placeholder="Genres" />
+            </div>
+            <input class="bk-input" name="soundcloud" type="url" inputmode="url" data-i18n-ph="ap-ph-sc" placeholder="SoundCloud link" required />
+            <textarea class="bk-textarea" name="about" data-i18n-ph="ap-ph-about" placeholder="About yourself" rows="4" required></textarea>
+            <button class="bk-submit" type="submit" data-i18n="ap-send">Send Application</button>
+            <div class="bk-msg" id="dj-msg"></div>
+          </form>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1591,8 +1625,14 @@
     ════════════════════════════════════════════════════════ */
     const i18n = {
       en: {
-        'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking',
+        'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking', 'nav-apply': 'Apply',
         'scroll-hint': 'Scroll ↓',
+        'ap-eyebrow': 'DJs', 'ap-headline': 'Play at our event',
+        'ap-intro': 'Want to play at HEAVY? Send us your info and a SoundCloud link — we listen to everything.',
+        'ap-ph-first': 'First name', 'ap-ph-last': 'Last name', 'ap-ph-age': 'Age', 'ap-ph-genres': 'Genres',
+        'ap-ph-sc': 'SoundCloud link', 'ap-ph-about': 'About yourself', 'ap-send': 'Send Application',
+        'ap-success': 'Application sent! We will get back to you.', 'ap-err-url': 'Please enter a valid SoundCloud link.',
+        'ap-err-required': 'Please fill in all required fields.', 'ap-err-send': 'Something went wrong. Please try again.',
         'welcome-desc': 'HEAVY is a rave series built on heavy sound and raw energy — a home for nu-era EDM, underground culture, and the artists pushing it forward.',
         'feed-eyebrow': 'YouTube', 'feed-headline': 'Our Content',
         'eyebrow': 'Upcoming Events', 'headline': 'Tickets',
@@ -1611,8 +1651,14 @@
         'footer': '© 2025 · Alter Ego — Part 2',
       },
       ua: {
-        'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг',
+        'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг', 'nav-apply': 'Заявка',
         'scroll-hint': 'Гортай ↓',
+        'ap-eyebrow': 'Діджеї', 'ap-headline': 'Зіграй на нашому івенті',
+        'ap-intro': 'Хочеш зіграти на HEAVY? Надішли свої дані та лінк на SoundCloud — ми слухаємо все.',
+        'ap-ph-first': "Ім'я", 'ap-ph-last': 'Прізвище', 'ap-ph-age': 'Вік', 'ap-ph-genres': 'Жанри',
+        'ap-ph-sc': 'Лінк на SoundCloud', 'ap-ph-about': 'Про себе', 'ap-send': 'Надіслати заявку',
+        'ap-success': 'Заявку надіслано! Ми з вами зв\'яжемось.', 'ap-err-url': 'Введіть коректний лінк на SoundCloud.',
+        'ap-err-required': 'Заповніть усі обов\'язкові поля.', 'ap-err-send': 'Щось пішло не так. Спробуйте ще раз.',
         'welcome-desc': 'HEAVY — це серія рейвів, побудована на важкому звуці та сирій енергії: дім для EDM нової ери, андеграундної культури та артистів, що рухають її вперед.',
         'feed-eyebrow': 'YouTube', 'feed-headline': 'Наш контент',
         'eyebrow': 'Найближчі події', 'headline': 'Квитки',
@@ -1663,8 +1709,8 @@
     /* ════════════════════════════════════════════════════════
        TAB NAVIGATION  (pushState → /tickets, /photos, /booking)
     ════════════════════════════════════════════════════════ */
-    const TAB_PATHS = { welcome: '/', tickets: '/tickets', photos: '/photos', booking: '/booking' };
-    const PATH_TO_TAB = { '/': 'welcome', '/tickets': 'tickets', '/photos': 'photos', '/booking': 'booking' };
+    const TAB_PATHS = { welcome: '/', tickets: '/tickets', photos: '/photos', booking: '/booking', apply: '/apply' };
+    const PATH_TO_TAB = { '/': 'welcome', '/tickets': 'tickets', '/photos': 'photos', '/booking': 'booking', '/apply': 'apply' };
 
     function parseBookingSlug(path) {
       const m = path.match(/^\/booking\/([a-z0-9_-]+)\/?$/i);
@@ -2031,7 +2077,7 @@
         });
         const res = await r.json();
         if (r.ok && res.ok) {
-          msg.textContent = 'Request sent! We will contact you soon.';
+          msg.textContent = i18n[currentLang]['bk-success'] || 'Request sent! We will contact you soon.';
           msg.className = 'bk-msg ok';
           form.reset();
           // metaTrack('Lead', { content_name: 'booking:' + artistSlug });
@@ -2041,6 +2087,54 @@
         }
       } catch (_) {
         msg.textContent = 'Network error. Please try again.';
+        msg.className = 'bk-msg err';
+      }
+      btn.disabled = false;
+    }
+
+    async function submitDjApplication(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = form.querySelector('.bk-submit');
+      const msg = document.getElementById('dj-msg');
+      const T = i18n[currentLang];
+      btn.disabled = true;
+      msg.textContent = '';
+      msg.className = 'bk-msg';
+
+      const data = Object.fromEntries(new FormData(form));
+
+      // ── Client-side validation ──
+      if (!data.firstName || !data.lastName || !data.age || !data.soundcloud || !data.about) {
+        msg.textContent = T['ap-err-required']; msg.className = 'bk-msg err'; btn.disabled = false; return;
+      }
+      const age = parseInt(data.age, 10);
+      if (isNaN(age) || age < 1 || age > 120) {
+        msg.textContent = T['ap-err-required']; msg.className = 'bk-msg err'; btn.disabled = false; return;
+      }
+      try {
+        new URL(data.soundcloud);
+      } catch (_) {
+        msg.textContent = T['ap-err-url']; msg.className = 'bk-msg err'; btn.disabled = false; return;
+      }
+
+      try {
+        const r = await fetch('/api/dj-application', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const res = await r.json();
+        if (r.ok && res.ok) {
+          msg.textContent = T['ap-success'];
+          msg.className = 'bk-msg ok';
+          form.reset();
+        } else {
+          msg.textContent = res.error || T['ap-err-send'];
+          msg.className = 'bk-msg err';
+        }
+      } catch (_) {
+        msg.textContent = T['ap-err-send'];
         msg.className = 'bk-msg err';
       }
       btn.disabled = false;
