@@ -74,6 +74,6 @@ $rows = mail_rows([
 ], ['SoundCloud', 'About']);   // these two are pre-built HTML
 $subject = 'New DJ Application — ' . $name;
 $html    = mail_shell('New DJ application to play at our event', $rows);
-list($sent, $code, $resp) = resend_send($subject, $html);
+list($sent, $code, $resp) = resend_send($subject, $html, '', mail_to_tagged('artistform'));
 
 echo json_encode(['ok' => true, 'emailed' => $sent]);

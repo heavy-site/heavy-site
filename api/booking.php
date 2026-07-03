@@ -68,6 +68,6 @@ $rows = mail_rows([
 ]);
 $subject = 'New Booking Request — ' . $name;
 $html    = mail_shell('New artist booking request' . ($entry['artist'] !== '' ? ' for ' . $entry['artist'] : ''), $rows);
-list($sent, $code, $resp) = resend_send($subject, $html, $entry['email']);
+list($sent, $code, $resp) = resend_send($subject, $html, $entry['email'], mail_to_tagged('booking'));
 
 echo json_encode(['ok' => true, 'emailed' => $sent]);

@@ -8,8 +8,17 @@
 require_once __DIR__ . '/_mono.php';
 
 // Destination inbox for form submissions. Override with a MAIL_TO
-// constant in monobank_config.php; falls back to the site owner.
-if (!defined('MAIL_TO')) define('MAIL_TO', 'e.pyvovar@gmail.com');
+// constant in monobank_config.php.
+if (!defined('MAIL_TO')) define('MAIL_TO', 'mad.cvlt666@gmail.com');
+
+/* Build a Gmail plus-addressed variant of MAIL_TO (e.g. name+booking@…)
+   so each form's mail can be filtered by tag. Falls back to MAIL_TO. */
+function mail_to_tagged($tag) {
+  $to = MAIL_TO;
+  $at = strpos($to, '@');
+  if ($at === false || $tag === '') return $to;
+  return substr($to, 0, $at) . '+' . $tag . substr($to, $at);
+}
 
 /* Escape a value for safe inclusion in the HTML email body. */
 function mail_esc($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
