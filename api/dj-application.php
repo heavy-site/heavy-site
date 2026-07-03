@@ -43,7 +43,9 @@ if (!filter_var($soundcloud, FILTER_VALIDATE_URL)) {
 
 $firstName = trim((string)$body['firstName']);
 $lastName  = trim((string)$body['lastName']);
-$genres    = isset($body['genres']) ? trim((string)$body['genres']) : '';
+$genres    = isset($body['genres'])    ? trim((string)$body['genres'])    : '';
+$telegram  = isset($body['telegram'])  ? trim((string)$body['telegram'])  : '';
+$instagram = isset($body['instagram']) ? trim((string)$body['instagram']) : '';
 $about     = trim((string)$body['about']);
 
 // ── Store a copy (same pattern as booking.php) ──
@@ -55,6 +57,8 @@ $entry = [
   'age'        => $age,
   'genres'     => $genres,
   'soundcloud' => $soundcloud,
+  'telegram'   => $telegram,
+  'instagram'  => $instagram,
   'about'      => $about,
   'ts'         => time(),
   'ip'         => $_SERVER['REMOTE_ADDR'] ?? '',
@@ -70,6 +74,8 @@ $rows = mail_rows([
   'Age'        => $age,
   'Genres'     => $genres,
   'SoundCloud' => $scLink,
+  'Telegram'   => $telegram,
+  'Instagram'  => $instagram,
   'About'      => nl2br(mail_esc($about)),
 ], ['SoundCloud', 'About']);   // these two are pre-built HTML
 $subject = 'New DJ Application — ' . $name;
