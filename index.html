@@ -301,7 +301,21 @@
       gap: clamp(20px, 3vw, 40px);
       align-items: start;
       border-bottom: 1px solid var(--line-soft);
-      padding: 44px 0;
+      padding: 44px clamp(16px, 2vw, 28px);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Blurred video thumbnail behind each row (dimmed so text stays readable) */
+    .media-row-bg {
+      position: absolute; inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(42px) brightness(0.35) saturate(1.2);
+      transform: scale(1.25); /* hide blur edges */
+      z-index: 0;
+    }
+    .media-row .video-frame, .media-row .media-info {
+      position: relative; z-index: 1;
     }
     .media-info .video-head {
       display: flex;
@@ -1874,8 +1888,10 @@
     function renderVideoFeed(list) {
       const feed = document.getElementById('video-feed');
       const esc = s => String(s || '').replace(/</g, '&lt;');
+      const vidId = v => v.id || (v.embed.match(/embed\/([\w-]+)/) || [])[1] || '';
       feed.innerHTML = list.map((v, i) => `
         <div class="media-row reveal">
+          ${vidId(v) ? `<div class="media-row-bg" style="background-image:url('https://img.youtube.com/vi/${vidId(v)}/hqdefault.jpg');"></div>` : ''}
           <div class="video-frame">
             <iframe src="${v.embed}" title="${esc(v.title)}" loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
