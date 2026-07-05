@@ -275,19 +275,7 @@
     }
     @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-    /* Contact CTA — team / collaboration forms (Apply tab) */
-    .contact-cta {
-      margin-top: clamp(56px, 9vh, 100px);
-      padding-top: clamp(40px, 6vh, 64px);
-      border-top: 1px solid var(--line);
-    }
-    .cta-heading {
-      font-family: var(--font-display);
-      font-size: clamp(2.4rem, 8vw, 5rem);
-      text-transform: uppercase;
-      line-height: 0.92;
-      margin-bottom: 32px;
-    }
+    /* Collaborate tab — form pickers */
     .cta-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
     .cta-btn {
       font-family: var(--font-mono);
@@ -1216,11 +1204,11 @@
       <button class="tab" data-tab="booking" onclick="showTab('booking')">
         <span class="tab-full" data-i18n="nav-booking">Booking</span>
       </button>
-      <button class="tab" data-tab="apply" onclick="showTab('apply')">
-        <span class="tab-full" data-i18n="nav-apply">Collaborate</span>
-      </button>
       <button class="tab" data-tab="media" onclick="showTab('media')">
         <span class="tab-full" data-i18n="nav-media">Media</span>
+      </button>
+      <button class="tab" data-tab="apply" onclick="showTab('apply')">
+        <span class="tab-full" data-i18n="nav-apply">Collaborate</span>
       </button>
     </div>
     <div class="lang" role="group" aria-label="Language">
@@ -1367,16 +1355,23 @@
     </div>
   </section>
 
-  <!-- ════════════════════════════ TAB — APPLY (Play at our event) ════════════════════════════ -->
+  <!-- ════════════════════════════ TAB — COLLABORATE (DJ / People / Organisations) ════════════════════════════ -->
   <section class="view" id="view-apply">
     <div class="photos-wrap">
       <div class="apply-wrap">
         <div class="section-head" style="text-align:left;margin-bottom:32px;">
-          <p class="eyebrow" data-i18n="ap-eyebrow">DJs</p>
-          <h2 class="chrome-text" data-i18n="ap-headline">Play at our event</h2>
-          <p class="apply-intro" data-i18n="ap-intro">Want to play at HEAVY? Send us your info and a SoundCloud link — we listen to everything.</p>
+          <p class="eyebrow" data-i18n="nav-apply">Collaborate</p>
+          <h2 class="chrome-text" data-i18n="cta-heading">Application Form</h2>
         </div>
-        <div class="booking-form-section">
+        <div class="cta-buttons">
+          <button class="cta-btn" id="cta-dj" onclick="toggleContactForm('dj')" data-i18n="cta-dj">DJ</button>
+          <button class="cta-btn" id="cta-team" onclick="toggleContactForm('team')" data-i18n="cta-team">People</button>
+          <button class="cta-btn" id="cta-collab" onclick="toggleContactForm('collab')" data-i18n="cta-collab">Organisations</button>
+        </div>
+
+        <!-- DJ application form ("Play at our event") -->
+        <div class="contact-form-wrap" id="form-dj" hidden>
+          <p class="apply-intro" style="margin:0 0 20px;" data-i18n="ap-intro">Want to play at HEAVY? Send us your info and a SoundCloud link — we listen to everything.</p>
           <form class="bk-form" id="dj-form" onsubmit="submitDjApplication(event)">
             <div class="bk-form-row">
               <input class="bk-input" name="firstName" data-i18n-ph="ap-ph-first" placeholder="First name" required />
@@ -1397,45 +1392,36 @@
           </form>
         </div>
 
-        <!-- Contact CTA — join the team / collaborate -->
-        <div class="contact-cta">
-          <h2 class="chrome-text cta-heading" data-i18n="cta-heading">Application Form</h2>
-          <div class="cta-buttons">
-            <button class="cta-btn" id="cta-team" onclick="toggleContactForm('team')" data-i18n="cta-team">For People</button>
-            <button class="cta-btn" id="cta-collab" onclick="toggleContactForm('collab')" data-i18n="cta-collab">For Organizations</button>
-          </div>
+        <!-- Team application form -->
+        <div class="contact-form-wrap" id="form-team" hidden>
+          <form class="bk-form" id="team-form" onsubmit="submitContactForm(event, 'team')">
+            <div class="bk-form-row">
+              <input class="bk-input" name="firstName" data-i18n-ph="ct-ph-first" placeholder="First name" required />
+              <input class="bk-input" name="lastName" data-i18n-ph="ct-ph-last" placeholder="Last name" required />
+            </div>
+            <div class="bk-form-row">
+              <input class="bk-input" name="telegram" data-i18n-ph="ct-ph-tg" placeholder="Telegram" />
+              <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
+            </div>
+            <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
+            <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-team-desc" placeholder="How do you want to join the team, and why should we take you?" rows="4" required></textarea>
+            <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
+            <div class="bk-msg" id="team-msg"></div>
+          </form>
+        </div>
 
-          <!-- Team application form -->
-          <div class="contact-form-wrap" id="form-team" hidden>
-            <form class="bk-form" id="team-form" onsubmit="submitContactForm(event, 'team')">
-              <div class="bk-form-row">
-                <input class="bk-input" name="firstName" data-i18n-ph="ct-ph-first" placeholder="First name" required />
-                <input class="bk-input" name="lastName" data-i18n-ph="ct-ph-last" placeholder="Last name" required />
-              </div>
-              <div class="bk-form-row">
-                <input class="bk-input" name="telegram" data-i18n-ph="ct-ph-tg" placeholder="Telegram" />
-                <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
-              </div>
+        <!-- Collaboration form -->
+        <div class="contact-form-wrap" id="form-collab" hidden>
+          <form class="bk-form" id="collab-form" onsubmit="submitContactForm(event, 'collab')">
+            <input class="bk-input" name="organization" data-i18n-ph="ct-ph-org" placeholder="Organization name" required />
+            <div class="bk-form-row">
               <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
-              <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-team-desc" placeholder="How do you want to join the team, and why should we take you?" rows="4" required></textarea>
-              <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
-              <div class="bk-msg" id="team-msg"></div>
-            </form>
-          </div>
-
-          <!-- Collaboration form -->
-          <div class="contact-form-wrap" id="form-collab" hidden>
-            <form class="bk-form" id="collab-form" onsubmit="submitContactForm(event, 'collab')">
-              <input class="bk-input" name="organization" data-i18n-ph="ct-ph-org" placeholder="Organization name" required />
-              <div class="bk-form-row">
-                <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
-                <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
-              </div>
-              <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-collab-desc" placeholder="Describe the collaboration you propose" rows="4" required></textarea>
-              <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
-              <div class="bk-msg" id="collab-msg"></div>
-            </form>
-          </div>
+              <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
+            </div>
+            <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-collab-desc" placeholder="Describe the collaboration you propose" rows="4" required></textarea>
+            <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
+            <div class="bk-msg" id="collab-msg"></div>
+          </form>
         </div>
       </div>
     </div>
@@ -1702,14 +1688,13 @@
         'slide-3': "We're a new and small team with big passion and love for our music.",
         'slide-4': "We're inviting you to see a nu era of Ukrainian rave culture — and we're inviting all kinds of producers, labels, artists: all people with passion and desire to create, to be part of the team or collaborate.",
         'cta-heading': 'Application Form',
-        'cta-team': 'For People', 'cta-collab': 'For Organizations', 'ct-send': 'Send',
+        'cta-dj': 'DJ', 'cta-team': 'People', 'cta-collab': 'Organisations', 'ct-send': 'Send',
         'ct-ph-first': 'First name', 'ct-ph-last': 'Last name', 'ct-ph-tg': 'Telegram', 'ct-ph-ig': 'Instagram',
         'ct-ph-email': 'Email', 'ct-ph-org': 'Organization name',
         'ct-ph-team-desc': 'How do you want to join the team, and why should we take you?',
         'ct-ph-collab-desc': 'Describe the collaboration you propose',
         'ct-success': 'Sent! We will get back to you.', 'ct-err-required': 'Please fill in all required fields.',
         'ct-err-email': 'Please enter a valid email.', 'ct-err-send': 'Something went wrong. Please try again.',
-        'ap-eyebrow': 'DJs', 'ap-headline': 'Play at our event',
         'ap-intro': 'Want to play at HEAVY? Send us your info and a SoundCloud link — we listen to everything.',
         'ap-ph-first': 'First name', 'ap-ph-last': 'Last name', 'ap-ph-age': 'Age', 'ap-ph-genres': 'Genres',
         'ap-ph-sc': 'SoundCloud link', 'ap-ph-tg': 'Telegram', 'ap-ph-ig': 'Instagram',
@@ -1740,14 +1725,13 @@
         'slide-3': 'Ми — нова й маленька команда з великою пристрастю та любов\'ю до нашої музики.',
         'slide-4': 'Запрошуємо тебе побачити нову еру української рейв-культури — і запрошуємо всіх продюсерів, лейбли, артистів: усіх людей із пристрастю та бажанням творити — приєднатися до команди чи колабораціювати.',
         'cta-heading': 'Форма заявки',
-        'cta-team': 'Для людей', 'cta-collab': 'Для організацій', 'ct-send': 'Надіслати',
+        'cta-dj': 'DJ', 'cta-team': 'Люди', 'cta-collab': 'Організації', 'ct-send': 'Надіслати',
         'ct-ph-first': "Ім'я", 'ct-ph-last': 'Прізвище', 'ct-ph-tg': 'Telegram', 'ct-ph-ig': 'Instagram',
         'ct-ph-email': 'Email', 'ct-ph-org': 'Назва організації',
         'ct-ph-team-desc': 'Як саме ти хочеш долучитися до команди і чому нам варто тебе взяти?',
         'ct-ph-collab-desc': 'Опиши колаборацію, яку пропонуєш',
         'ct-success': 'Надіслано! Ми з вами зв\'яжемось.', 'ct-err-required': 'Заповніть усі обов\'язкові поля.',
         'ct-err-email': 'Введіть коректний email.', 'ct-err-send': 'Щось пішло не так. Спробуйте ще раз.',
-        'ap-eyebrow': 'Діджеї', 'ap-headline': 'Зіграй на нашому івенті',
         'ap-intro': 'Хочеш зіграти на HEAVY? Надішли свої дані та лінк на SoundCloud — ми слухаємо все.',
         'ap-ph-first': "Ім'я", 'ap-ph-last': 'Прізвище', 'ap-ph-age': 'Вік', 'ap-ph-genres': 'Жанри',
         'ap-ph-sc': 'Лінк на SoundCloud', 'ap-ph-tg': 'Telegram', 'ap-ph-ig': 'Instagram',
@@ -2238,14 +2222,19 @@
       btn.disabled = false;
     }
 
-    /* ── Contact CTA forms (team / collab) ── */
+    /* ── Collaborate forms (dj / team / collab) ── */
     function toggleContactForm(kind) {
-      const other = kind === 'team' ? 'collab' : 'team';
-      const el = document.getElementById('form-' + kind);
-      el.hidden = !el.hidden;
-      document.getElementById('form-' + other).hidden = true;
-      document.getElementById('cta-' + kind).classList.toggle('active', !el.hidden);
-      document.getElementById('cta-' + other).classList.remove('active');
+      ['dj', 'team', 'collab'].forEach(k => {
+        const el = document.getElementById('form-' + k);
+        const btn = document.getElementById('cta-' + k);
+        if (k === kind) {
+          el.hidden = !el.hidden;
+          btn.classList.toggle('active', !el.hidden);
+        } else {
+          el.hidden = true;
+          btn.classList.remove('active');
+        }
+      });
     }
 
     async function submitContactForm(e, kind) {
