@@ -1217,7 +1217,7 @@
         <span class="tab-full" data-i18n="nav-booking">Booking</span>
       </button>
       <button class="tab" data-tab="apply" onclick="showTab('apply')">
-        <span class="tab-full" data-i18n="nav-apply">Apply</span>
+        <span class="tab-full" data-i18n="nav-apply">Collaborate</span>
       </button>
       <button class="tab" data-tab="media" onclick="showTab('media')">
         <span class="tab-full" data-i18n="nav-media">Media</span>
@@ -1695,7 +1695,7 @@
     ════════════════════════════════════════════════════════ */
     const i18n = {
       en: {
-        'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking', 'nav-apply': 'Apply', 'nav-media': 'Media',
+        'nav-welcome': 'Welcome', 'nav-tickets': 'Tickets', 'nav-photos': 'Photos', 'nav-booking': 'Booking', 'nav-apply': 'Collaborate', 'nav-media': 'Media',
         'scroll-hint': 'Scroll ↓',
         'slide-1': 'HEAVY is a rave series built on heavy sound and raw energy — a home for nu-era EDM, and the artists pushing it forward.',
         'slide-2': "It's an event series where we combine alternative music with unique light and decoration design. Our main pillars are creativity, consistency and honesty.",
@@ -1733,7 +1733,7 @@
         'footer': '© 2025 · Alter Ego — Part 2',
       },
       ua: {
-        'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг', 'nav-apply': 'Заявка', 'nav-media': 'Медіа',
+        'nav-welcome': 'Вітаємо', 'nav-tickets': 'Квитки', 'nav-photos': 'Фото', 'nav-booking': 'Букінг', 'nav-apply': 'Колаборація', 'nav-media': 'Медіа',
         'scroll-hint': 'Гортай ↓',
         'slide-1': 'HEAVY — це серія рейвів, побудована на важкому звуці та сирій енергії: дім для EDM нової ери та артистів, що рухають її вперед.',
         'slide-2': 'Це серія івентів, де ми поєднуємо альтернативну музику з унікальним світловим та декораційним дизайном. Наші головні опори — креативність, послідовність і чесність.',
@@ -1803,8 +1803,8 @@
     /* ════════════════════════════════════════════════════════
        TAB NAVIGATION  (pushState → /tickets, /photos, /booking)
     ════════════════════════════════════════════════════════ */
-    const TAB_PATHS = { welcome: '/', tickets: '/tickets', photos: '/photos', booking: '/booking', apply: '/apply', media: '/media' };
-    const PATH_TO_TAB = { '/': 'welcome', '/tickets': 'tickets', '/photos': 'photos', '/booking': 'booking', '/apply': 'apply', '/media': 'media' };
+    const TAB_PATHS = { welcome: '/', tickets: '/tickets', photos: '/photos', booking: '/booking', apply: '/collaborate', media: '/media' };
+    const PATH_TO_TAB = { '/': 'welcome', '/tickets': 'tickets', '/photos': 'photos', '/booking': 'booking', '/collaborate': 'apply', '/media': 'media' };
 
     function parseBookingSlug(path) {
       const m = path.match(/^\/booking\/([a-z0-9_-]+)\/?$/i);

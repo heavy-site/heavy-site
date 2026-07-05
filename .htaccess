@@ -36,7 +36,7 @@
   RewriteRule ^photos/?$               /index.html                [L,QSA]
   RewriteRule ^booking/?$              /index.html                [L,QSA]
   RewriteRule ^booking/[a-zA-Z0-9_-]+/?$ /index.html             [L,QSA]
-  RewriteRule ^apply/?$                /index.html                [L,QSA]
+  RewriteRule ^collaborate/?$          /index.html                [L,QSA]
   RewriteRule ^media/?$                /index.html                [L,QSA]
 
   # Pretty paths
