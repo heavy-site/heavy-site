@@ -275,11 +275,11 @@
     }
     @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-    /* Contact CTA below the slides */
+    /* Contact CTA — team / collaboration forms (Apply tab) */
     .contact-cta {
-      padding: clamp(60px, 10vh, 120px) clamp(20px, 6vw, 90px);
+      margin-top: clamp(56px, 9vh, 100px);
+      padding-top: clamp(40px, 6vh, 64px);
       border-top: 1px solid var(--line);
-      max-width: 900px;
     }
     .cta-heading {
       font-family: var(--font-display);
@@ -1241,14 +1241,14 @@
       <div class="scroll-hint" data-i18n="scroll-hint">Scroll ↓</div>
     </div>
     <!-- Slide 2 -->
-    <div class="w-slide" style="background-image:url('/slide-2.jpg');">
+    <div class="w-slide" style="background-image:url('/slide-3.jpg');">
       <div class="w-slide-shade"></div>
       <div class="w-slide-inner">
         <p class="w-slide-text reveal" data-i18n="slide-2">It's an event series where we combine alternative music with unique light and decoration design. Our main pillars are creativity, consistency and honesty.</p>
       </div>
     </div>
     <!-- Slide 3 -->
-    <div class="w-slide" style="background-image:url('/slide-3.jpg');">
+    <div class="w-slide" style="background-image:url('/slide-2.jpg');">
       <div class="w-slide-shade"></div>
       <div class="w-slide-inner">
         <p class="w-slide-text reveal" data-i18n="slide-3">We're a new and small team with big passion and love for our music.</p>
@@ -1262,46 +1262,6 @@
       </div>
     </div>
 
-    <!-- Contact CTA — join the team / collaborate -->
-    <div class="contact-cta reveal">
-      <h2 class="chrome-text cta-heading" data-i18n="cta-heading">Application Form</h2>
-      <div class="cta-buttons">
-        <button class="cta-btn" id="cta-team" onclick="toggleContactForm('team')" data-i18n="cta-team">For People</button>
-        <button class="cta-btn" id="cta-collab" onclick="toggleContactForm('collab')" data-i18n="cta-collab">For Organizations</button>
-      </div>
-
-      <!-- Team application form -->
-      <div class="contact-form-wrap" id="form-team" hidden>
-        <form class="bk-form" id="team-form" onsubmit="submitContactForm(event, 'team')">
-          <div class="bk-form-row">
-            <input class="bk-input" name="firstName" data-i18n-ph="ct-ph-first" placeholder="First name" required />
-            <input class="bk-input" name="lastName" data-i18n-ph="ct-ph-last" placeholder="Last name" required />
-          </div>
-          <div class="bk-form-row">
-            <input class="bk-input" name="telegram" data-i18n-ph="ct-ph-tg" placeholder="Telegram" />
-            <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
-          </div>
-          <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
-          <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-team-desc" placeholder="How do you want to join the team, and why should we take you?" rows="4" required></textarea>
-          <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
-          <div class="bk-msg" id="team-msg"></div>
-        </form>
-      </div>
-
-      <!-- Collaboration form -->
-      <div class="contact-form-wrap" id="form-collab" hidden>
-        <form class="bk-form" id="collab-form" onsubmit="submitContactForm(event, 'collab')">
-          <input class="bk-input" name="organization" data-i18n-ph="ct-ph-org" placeholder="Organization name" required />
-          <div class="bk-form-row">
-            <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
-            <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
-          </div>
-          <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-collab-desc" placeholder="Describe the collaboration you propose" rows="4" required></textarea>
-          <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
-          <div class="bk-msg" id="collab-msg"></div>
-        </form>
-      </div>
-    </div>
   </section>
 
   <!-- ════════════════════════════ TAB 2 — TICKETS ════════════════════════════ -->
@@ -1435,6 +1395,47 @@
             <button class="bk-submit" type="submit" data-i18n="ap-send">Send Application</button>
             <div class="bk-msg" id="dj-msg"></div>
           </form>
+        </div>
+
+        <!-- Contact CTA — join the team / collaborate -->
+        <div class="contact-cta">
+          <h2 class="chrome-text cta-heading" data-i18n="cta-heading">Application Form</h2>
+          <div class="cta-buttons">
+            <button class="cta-btn" id="cta-team" onclick="toggleContactForm('team')" data-i18n="cta-team">For People</button>
+            <button class="cta-btn" id="cta-collab" onclick="toggleContactForm('collab')" data-i18n="cta-collab">For Organizations</button>
+          </div>
+
+          <!-- Team application form -->
+          <div class="contact-form-wrap" id="form-team" hidden>
+            <form class="bk-form" id="team-form" onsubmit="submitContactForm(event, 'team')">
+              <div class="bk-form-row">
+                <input class="bk-input" name="firstName" data-i18n-ph="ct-ph-first" placeholder="First name" required />
+                <input class="bk-input" name="lastName" data-i18n-ph="ct-ph-last" placeholder="Last name" required />
+              </div>
+              <div class="bk-form-row">
+                <input class="bk-input" name="telegram" data-i18n-ph="ct-ph-tg" placeholder="Telegram" />
+                <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
+              </div>
+              <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
+              <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-team-desc" placeholder="How do you want to join the team, and why should we take you?" rows="4" required></textarea>
+              <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
+              <div class="bk-msg" id="team-msg"></div>
+            </form>
+          </div>
+
+          <!-- Collaboration form -->
+          <div class="contact-form-wrap" id="form-collab" hidden>
+            <form class="bk-form" id="collab-form" onsubmit="submitContactForm(event, 'collab')">
+              <input class="bk-input" name="organization" data-i18n-ph="ct-ph-org" placeholder="Organization name" required />
+              <div class="bk-form-row">
+                <input class="bk-input" name="email" type="email" data-i18n-ph="ct-ph-email" placeholder="Email" required />
+                <input class="bk-input" name="instagram" data-i18n-ph="ct-ph-ig" placeholder="Instagram" />
+              </div>
+              <textarea class="bk-textarea" name="description" data-i18n-ph="ct-ph-collab-desc" placeholder="Describe the collaboration you propose" rows="4" required></textarea>
+              <button class="bk-submit" type="submit" data-i18n="ct-send">Send</button>
+              <div class="bk-msg" id="collab-msg"></div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
