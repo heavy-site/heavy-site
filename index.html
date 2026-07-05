@@ -281,6 +281,13 @@
       border-top: 1px solid var(--line);
       max-width: 900px;
     }
+    .cta-heading {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 8vw, 5rem);
+      text-transform: uppercase;
+      line-height: 0.92;
+      margin-bottom: 32px;
+    }
     .cta-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
     .cta-btn {
       font-family: var(--font-mono);
@@ -1257,6 +1264,7 @@
 
     <!-- Contact CTA — join the team / collaborate -->
     <div class="contact-cta reveal">
+      <h2 class="chrome-text cta-heading" data-i18n="cta-heading">Application Form</h2>
       <div class="cta-buttons">
         <button class="cta-btn" id="cta-team" onclick="toggleContactForm('team')" data-i18n="cta-team">For People</button>
         <button class="cta-btn" id="cta-collab" onclick="toggleContactForm('collab')" data-i18n="cta-collab">For Organizations</button>
@@ -1692,6 +1700,7 @@
         'slide-2': "It's an event series where we combine alternative music with unique light and decoration design. Our main pillars are creativity, consistency and honesty.",
         'slide-3': "We're a new and small team with big passion and love for our music.",
         'slide-4': "We're inviting you to see a nu era of Ukrainian rave culture — and we're inviting all kinds of producers, labels, artists: all people with passion and desire to create, to be part of the team or collaborate.",
+        'cta-heading': 'Application Form',
         'cta-team': 'For People', 'cta-collab': 'For Organizations', 'ct-send': 'Send',
         'ct-ph-first': 'First name', 'ct-ph-last': 'Last name', 'ct-ph-tg': 'Telegram', 'ct-ph-ig': 'Instagram',
         'ct-ph-email': 'Email', 'ct-ph-org': 'Organization name',
@@ -1729,6 +1738,7 @@
         'slide-2': 'Це серія івентів, де ми поєднуємо альтернативну музику з унікальним світловим та декораційним дизайном. Наші головні опори — креативність, послідовність і чесність.',
         'slide-3': 'Ми — нова й маленька команда з великою пристрастю та любов\'ю до нашої музики.',
         'slide-4': 'Запрошуємо тебе побачити нову еру української рейв-культури — і запрошуємо всіх продюсерів, лейбли, артистів: усіх людей із пристрастю та бажанням творити — приєднатися до команди чи колабораціювати.',
+        'cta-heading': 'Форма заявки',
         'cta-team': 'Для людей', 'cta-collab': 'Для організацій', 'ct-send': 'Надіслати',
         'ct-ph-first': "Ім'я", 'ct-ph-last': 'Прізвище', 'ct-ph-tg': 'Telegram', 'ct-ph-ig': 'Instagram',
         'ct-ph-email': 'Email', 'ct-ph-org': 'Назва організації',
