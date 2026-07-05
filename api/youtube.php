@@ -112,7 +112,11 @@ if ($channelId !== '') {
       $id = (string)$yt->videoId;
       $title = (string)$entry->title;
       if ($id === '') continue;
-      $entries[] = ['id' => $id, 'title' => $title];
+      $media = $entry->children($ns['media'] ?? 'http://search.yahoo.com/mrss/');
+      $desc  = isset($media->group->description) ? (string)$media->group->description : '';
+      // Keep the email/feed compact: first 400 chars is plenty for a blurb.
+      if (mb_strlen($desc) > 400) $desc = mb_substr($desc, 0, 400) . '…';
+      $entries[] = ['id' => $id, 'title' => $title, 'desc' => $desc];
     }
   }
 }
@@ -124,7 +128,7 @@ $keep = $ids ? classify_long_videos($ids) : [];
 $videos = [];
 foreach ($entries as $e) {
   if (empty($keep[$e['id']])) continue;
-  $videos[] = ['title' => $e['title'], 'embed' => 'https://www.youtube.com/embed/' . $e['id'], 'id' => $e['id']];
+  $videos[] = ['title' => $e['title'], 'desc' => $e['desc'], 'embed' => 'https://www.youtube.com/embed/' . $e['id'], 'id' => $e['id']];
 }
 
 /* Safety net: if filtering removed EVERYTHING (e.g. the probe was blocked),
@@ -132,7 +136,7 @@ foreach ($entries as $e) {
    empty feed. */
 if (!$videos && $entries) {
   foreach ($entries as $e) {
-    $videos[] = ['title' => $e['title'], 'embed' => 'https://www.youtube.com/embed/' . $e['id'], 'id' => $e['id']];
+    $videos[] = ['title' => $e['title'], 'desc' => $e['desc'], 'embed' => 'https://www.youtube.com/embed/' . $e['id'], 'id' => $e['id']];
   }
 }
 
