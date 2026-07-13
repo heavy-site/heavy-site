@@ -533,6 +533,17 @@
       border-bottom: 1px solid var(--line);
       padding-bottom: 22px;
     }
+    .photo-credit {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .photo-credit:hover { color: var(--fg); border-color: var(--fg); }
     .back-btn {
       font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.18em;
       text-transform: uppercase; color: var(--muted);
@@ -1326,6 +1337,7 @@
           <button class="back-btn" onclick="closeGallery()" data-i18n="back">← Back</button>
           <h2 id="gallery-title"></h2>
           <span class="g-date" id="gallery-date"></span>
+          <a class="photo-credit" href="https://www.instagram.com/cherniy_cvet" target="_blank" rel="noopener">Photo made by Cherniy Cvet</a>
         </div>
         <div id="gallery-body"></div>
       </div>
