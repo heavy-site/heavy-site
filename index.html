@@ -478,6 +478,18 @@
     .buy-btn svg { width: 14px; height: 14px; transition: transform 0.2s var(--ease); }
     .buy-btn:hover svg { transform: translateX(3px); }
 
+    /* Ended event — not purchasable */
+    .event-card.is-ended { cursor: default; }
+    .ended-badge {
+      margin-top: 6px;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 20px;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--line);
+      font-family: var(--font-mono);
+      font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+
     /* ══════════════════════════════════════════════════
        TAB 3 — PHOTOS
     ══════════════════════════════════════════════════ */
@@ -517,13 +529,21 @@
     }
     .ev-card .ev-name {
       font-family: var(--font-display);
-      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
       text-transform: uppercase; line-height: 0.95;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .ev-card .ev-date {
       font-family: var(--font-mono);
       font-size: 0.74rem; letter-spacing: 0.16em; color: var(--muted);
     }
+    .ev-card .ev-credit {
+      font-family: var(--font-mono);
+      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); border-bottom: 1px solid var(--line);
+      align-self: flex-start; transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .ev-card .ev-credit:hover { color: var(--fg); border-color: var(--fg); }
 
     /* Gallery */
     .gallery-head {
@@ -536,14 +556,14 @@
     .photo-credit {
       margin-left: auto;
       font-family: var(--font-mono);
-      font-size: 0.72rem;
+      font-size: 0.95rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--muted);
-      border-bottom: 1px solid var(--line);
-      transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+      color: var(--fg);
+      border-bottom: 1px solid var(--fg);
+      transition: opacity 0.2s var(--ease);
     }
-    .photo-credit:hover { color: var(--fg); border-color: var(--fg); }
+    .photo-credit:hover { opacity: 0.7; }
     .back-btn {
       font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.18em;
       text-transform: uppercase; color: var(--muted);
@@ -1279,7 +1299,7 @@
 
       <div class="cards-grid">
         <!-- ══ EVENT CARD (copy to add more) ══ -->
-        <article class="event-card" tabindex="0" role="button" aria-label="Alter Ego — buy tickets" onclick="openCheckout('alter-ego')">
+        <article class="event-card is-ended" aria-label="Alter Ego — Part 2 (event ended)">
           <div class="card-image" style="background-image: url('/event-poster.png');"></div>
           <div class="card-gradient"></div>
           <div class="card-info">
@@ -1305,12 +1325,7 @@
                 <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
               </div>
             </div>
-            <button class="buy-btn" onclick="event.stopPropagation(); openCheckout('alter-ego')" data-i18n="buy-btn">
-              Buy Ticket
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </button>
+            <div class="ended-badge" data-i18n="ev-ended">Event ended</div>
           </div>
         </article>
         <!-- ══ END EVENT CARD ══ -->
@@ -1723,7 +1738,7 @@
         'eyebrow': 'Upcoming Events', 'headline': 'Tickets',
         'lbl-date': 'Date & Time', 'lbl-place': 'Place', 'lbl-price': 'Price',
         'lbl-time': 'Time', 'lbl-geo': 'Map', 'open-map': 'Open in maps ↗',
-        'ticket-price': '300 UAH', 'buy-btn': 'Buy Ticket',
+        'ticket-price': '300 UAH', 'buy-btn': 'Buy Ticket', 'ev-ended': 'Event ended',
         'co-eyebrow': 'Get Tickets', 'co-qty': 'Quantity', 'co-total': 'Total', 'co-pay': 'Pay',
         'ph-email': 'Email', 'ph-first': 'First name', 'ph-last': 'Last name',
         'ph-eyebrow': 'Archive', 'ph-headline': 'Photos', 'back': '← Back', 'download': 'Download',
@@ -1760,7 +1775,7 @@
         'eyebrow': 'Найближчі події', 'headline': 'Квитки',
         'lbl-date': 'Дата та час', 'lbl-place': 'Місце', 'lbl-price': 'Ціна',
         'lbl-time': 'Час', 'lbl-geo': 'Мапа', 'open-map': 'Відкрити в картах ↗',
-        'ticket-price': '300 грн', 'buy-btn': 'Придбати квиток',
+        'ticket-price': '300 грн', 'buy-btn': 'Придбати квиток', 'ev-ended': 'Івент завершено',
         'co-eyebrow': 'Придбати квитки', 'co-qty': 'Кількість', 'co-total': 'Разом', 'co-pay': 'Сплатити',
         'ph-email': 'Email', 'ph-first': "Ім'я", 'ph-last': 'Прізвище',
         'ph-eyebrow': 'Архів', 'ph-headline': 'Фото', 'back': '← Назад', 'download': 'Завантажити',
@@ -1934,6 +1949,7 @@
           <div class="ev-meta">
             <div class="ev-name">${ev.name}</div>
             <div class="ev-date">${ev.date}</div>
+            <a class="ev-credit" href="https://www.instagram.com/cherniy_cvet" target="_blank" rel="noopener" onclick="event.stopPropagation();">Photo made by Cherniy Cvet</a>
           </div>
         </article>`).join('');
       // Keyboard access: Enter/Space opens the gallery.
