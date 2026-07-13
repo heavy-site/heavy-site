@@ -1352,7 +1352,7 @@
           <button class="back-btn" onclick="closeGallery()" data-i18n="back">← Back</button>
           <h2 id="gallery-title"></h2>
           <span class="g-date" id="gallery-date"></span>
-          <a class="photo-credit" href="https://www.instagram.com/cherniy_cvet" target="_blank" rel="noopener">Photo made by Cherniy Cvet</a>
+          <a class="photo-credit" id="gallery-credit" href="#" target="_blank" rel="noopener" hidden></a>
         </div>
         <div id="gallery-body"></div>
       </div>
@@ -1573,6 +1573,7 @@
         date: 'June 28, 2026',
         cover: 'alter-ego-2-cover.jpg', // missing → falls back to first pCloud photo
         pcloud: 'https://e.pcloud.link/publink/show?code=kZ5G8oZJbRENmzbUy0co21MDKlfiHhdM6HX',
+        photographer: { name: 'Cherniy Cvet', url: 'https://www.instagram.com/cherniy_cvet' },
       },
       // { name: 'Next Event', date: '12 Sep 2025', cover: 'cover2.jpg', pcloud: 'https://e.pcloud.link/publink/show?code=...' },
     ];
@@ -1949,7 +1950,7 @@
           <div class="ev-meta">
             <div class="ev-name">${ev.name}</div>
             <div class="ev-date">${ev.date}</div>
-            <a class="ev-credit" href="https://www.instagram.com/cherniy_cvet" target="_blank" rel="noopener" onclick="event.stopPropagation();">Photo made by Cherniy Cvet</a>
+            ${ev.photographer ? `<a class="ev-credit" href="${ev.photographer.url}" target="_blank" rel="noopener" onclick="event.stopPropagation();">Photo made by ${ev.photographer.name}</a>` : ''}
           </div>
         </article>`).join('');
       // Keyboard access: Enter/Space opens the gallery.
@@ -2330,6 +2331,14 @@
       document.getElementById('gallery').style.display = 'block';
       document.getElementById('gallery-title').textContent = ev.name;
       document.getElementById('gallery-date').textContent = ev.date;
+      const credit = document.getElementById('gallery-credit');
+      if (ev.photographer) {
+        credit.textContent = 'Photo made by ' + ev.photographer.name;
+        credit.href = ev.photographer.url;
+        credit.hidden = false;
+      } else {
+        credit.hidden = true;
+      }
       const body = document.getElementById('gallery-body');
       currentPhotos = [];
       currentCode = ev.pcloud;
