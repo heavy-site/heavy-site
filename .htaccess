@@ -34,6 +34,7 @@
   # SPA tab routes → index.html (JS reads path and opens the tab)
   RewriteRule ^tickets/?$              /index.html                [L,QSA]
   RewriteRule ^photos/?$               /index.html                [L,QSA]
+  RewriteRule ^photos/[a-zA-Z0-9_-]+/?$ /index.html               [L,QSA]
   RewriteRule ^booking/?$              /index.html                [L,QSA]
   RewriteRule ^booking/[a-zA-Z0-9_-]+/?$ /index.html             [L,QSA]
   RewriteRule ^collaborate/?$          /index.html                [L,QSA]
