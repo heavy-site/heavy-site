@@ -1349,7 +1349,7 @@
       <!-- Gallery (hidden until an event is opened) -->
       <div id="gallery" style="display:none;">
         <div class="gallery-head">
-          <button class="back-btn" onclick="closeGallery()" data-i18n="back">← Back</button>
+          <button class="back-btn" onclick="galleryBack()" data-i18n="back">← Back</button>
           <h2 id="gallery-title"></h2>
           <span class="g-date" id="gallery-date"></span>
           <a class="photo-credit" id="gallery-credit" href="#" target="_blank" rel="noopener" hidden></a>
@@ -1571,7 +1571,7 @@
       {
         name: 'Heavy: Alter Ego Part 2',
         date: 'June 28, 2026',
-        cover: 'alter-ego-2-cover.jpg', // missing → falls back to first pCloud photo
+        cover: 'alter-ego-2-cover.jpg',
         pcloud: 'https://e.pcloud.link/publink/show?code=kZ5G8oZJbRENmzbUy0co21MDKlfiHhdM6HX',
         photographer: { name: 'Cherniy Cvet', url: 'https://www.instagram.com/cherniy_cvet' },
       },
@@ -1828,6 +1828,16 @@
       const m = path.match(/^\/booking\/([a-z0-9_-]+)\/?$/i);
       return m ? m[1] : null;
     }
+    function eventSlug(ev) {
+      return ev.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+    function parsePhotoSlug(path) {
+      const m = path.match(/^\/photos\/([a-z0-9_-]+)\/?$/i);
+      return m ? m[1] : null;
+    }
+    function findEventBySlug(slug) {
+      return EVENTS.findIndex(ev => eventSlug(ev) === slug);
+    }
 
     function showTab(name, pushState) {
       closeGallery();
@@ -1848,9 +1858,14 @@
     window.addEventListener('popstate', function (e) {
       var tab = (e.state && e.state.tab) ? e.state.tab : PATH_TO_TAB[location.pathname] || 'welcome';
       var slug = parseBookingSlug(location.pathname);
+      var photoSlug = parsePhotoSlug(location.pathname);
       if (slug || (e.state && e.state.artist)) {
         showTab('booking', false);
         openArtistBySlug(slug || e.state.artist);
+      } else if (photoSlug || (e.state && e.state.gallery)) {
+        showTab('photos', false);
+        var gi = findEventBySlug(photoSlug || e.state.gallery);
+        if (gi >= 0) openGallery(gi, false);
       } else {
         showTab(tab, false);
       }
@@ -2325,8 +2340,13 @@
     let currentCode = '';
     let currentEventName = '';
 
-    async function openGallery(index) {
+    async function openGallery(index, pushState) {
       const ev = EVENTS[index];
+      // History savepoint: /photos/{slug} so Back returns to the album list
+      // and the open album is shareable/bookmarkable.
+      if (pushState !== false && ev) {
+        history.pushState({ tab: 'photos', gallery: eventSlug(ev) }, '', '/photos/' + eventSlug(ev));
+      }
       document.getElementById('events-list').style.display = 'none';
       document.getElementById('gallery').style.display = 'block';
       document.getElementById('gallery-title').textContent = ev.name;
@@ -2375,6 +2395,12 @@
     function closeGallery() {
       document.getElementById('gallery').style.display = 'none';
       document.getElementById('events-list').style.display = 'block';
+    }
+    // UI "← Back": step through history so the /photos/{slug} savepoint is
+    // popped (URL returns to /photos). Falls back to a plain close.
+    function galleryBack() {
+      if (parsePhotoSlug(location.pathname)) history.back();
+      else closeGallery();
     }
 
     /* ════════════════════════════════════════════════════════
@@ -2680,10 +2706,12 @@
 
     // Open the tab matching the URL path (e.g. /tickets → tickets tab).
     var initSlug = parseBookingSlug(location.pathname);
-    var initTab = initSlug ? 'booking' : (PATH_TO_TAB[location.pathname] || 'welcome');
+    var initPhotoSlug = parsePhotoSlug(location.pathname);
+    var initTab = initSlug ? 'booking' : initPhotoSlug ? 'photos' : (PATH_TO_TAB[location.pathname] || 'welcome');
     if (initTab !== 'welcome') {
       showTab(initTab, false);
       if (initSlug) openArtistBySlug(initSlug);
+      if (initPhotoSlug) { var gi = findEventBySlug(initPhotoSlug); if (gi >= 0) openGallery(gi, false); }
     } else {
       history.replaceState({ tab: 'welcome' }, '', '/');
     }
