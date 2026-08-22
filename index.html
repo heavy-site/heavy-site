@@ -434,6 +434,12 @@
     @media (max-width: 859px) {
       .events-split { flex-direction: column; align-items: center; max-width: var(--card-w); }
       .ev-half + .ev-half { border-left: none; border-top: 1px solid var(--line); }
+      /* Stacked, so the second series has to announce itself: tighten the
+         column until its title and the top of its card clear the fold,
+         otherwise the tab reads as if it holds a single event. */
+      .tickets-inner { justify-content: flex-start; padding: 26px 20px 48px; }
+      .tickets-inner .section-head { margin-bottom: 22px; }
+      .ev-half { gap: 14px; padding: 16px 20px 20px; }
     }
 
     .event-card {

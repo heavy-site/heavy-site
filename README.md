@@ -75,4 +75,8 @@ Push to GitHub → pull on cPanel via Git Version Control, or upload via File Ma
 
 ## Testing
 
-Test Resend: `https://he4vy.com/api/test-resend.php?to=your@email.com`
+Test Resend: `https://he4vy.com/api/test-resend.php?key=<TICKET_SECRET>&to=your@email.com`
+
+`key` is the ticket signing secret (`TICKET_SECRET` from the config, or the
+auto-generated one persisted in `MONO_DATA_DIR`). The endpoint sends real mail
+from the verified sender, so it stays gated.
