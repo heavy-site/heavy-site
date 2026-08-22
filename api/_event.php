@@ -5,6 +5,7 @@ function heavy_event($id) {
   $E = [
     'alter-ego' => [
       'name'        => 'Alter Ego — Part 2',
+      'poster'      => '/event-poster.png',
       'date'        => 'June 28, 2026',
       'time'        => '18:00 – 22:00',
       'venue'       => 'Gurtok',
@@ -22,6 +23,7 @@ function heavy_event($id) {
     ],
     'insane-rave' => [
       'name'        => 'Insane Rave',
+      'poster'      => '/insane-poster.png',
       'date'        => 'August 29, 2026',
       'time'        => '18:00 – 22:00',
       'venue'       => 'nøx',

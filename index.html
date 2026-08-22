@@ -424,7 +424,7 @@
       .ev-half:last-child  { transform-origin: right center; }
       .events-split:hover .ev-half:not(:hover) {
         opacity: 0.4;
-        filter: grayscale(1) brightness(0.65);
+        filter: brightness(0.65);
       }
       .ev-half:hover { transform: scale(1.12); z-index: 5; }
     }
@@ -457,7 +457,7 @@
         linear-gradient(160deg, #262626 0%, #0D0D0D 50%, #0D0D0D 100%);
       background-size: cover;
       background-position: center;
-      filter: grayscale(1) contrast(1.05);
+      filter: contrast(1.05);
       transition: transform 0.6s var(--ease);
     }
     .event-card:hover .card-image { transform: scale(1.06); }
@@ -725,7 +725,7 @@
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: cover; display: block;
-      filter: grayscale(1) contrast(1.05);
+      filter: contrast(1.05);
     }
     /* Right column — info + form (scrolls internally if tall) */
     .co-right {
@@ -1211,7 +1211,7 @@
         position: absolute; inset: 0; flex: none; z-index: 0;
       }
       .co-poster {
-        filter: grayscale(1) contrast(1.05) blur(10px) brightness(0.32);
+        filter: contrast(1.05) blur(10px) brightness(0.32);
       }
       .co-right {
         position: relative; z-index: 1; max-height: none;
@@ -1578,7 +1578,9 @@
 
       <!-- Left column (desktop) / frosted background (mobile): event poster -->
       <div class="co-left">
-        <img class="co-poster" id="co-poster" src="/event-poster.png" alt="Event poster" />
+        <!-- src is set per event by openCheckout(); hardcoding it here made every
+             page load fetch the poster even with the modal closed. -->
+        <img class="co-poster" id="co-poster" alt="" />
       </div>
 
       <!-- Right column: event info + purchase form -->
@@ -2631,6 +2633,8 @@
       const m = document.getElementById('checkout');
       document.getElementById('co-name').textContent = '…';
       document.getElementById('co-detail').innerHTML = '';
+      const poster = document.getElementById('co-poster');
+      poster.removeAttribute('src'); poster.alt = '';   // never show the previous event's art
       document.getElementById('co-error').hidden = true;
       document.getElementById('co-form').reset();
       coQty = 1; document.getElementById('co-qty').value = '1';
@@ -2642,6 +2646,7 @@
         if (ev.error) throw new Error(ev.error);
         coEvent = ev; coEvent.ticketId = ticketId;
         document.getElementById('co-name').textContent = ev.name;
+        if (ev.poster) { poster.src = ev.poster; poster.alt = ev.name + ' poster'; }
 
         // Build the detail view (date / time / venue / description / geo tag).
         const L = i18n[currentLang];
