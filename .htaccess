@@ -45,6 +45,26 @@
   RewriteRule ^verify/?$               /verify.html              [L,QSA]
 </IfModule>
 
+# ── Cache policy ────────────────────────────────────────────────────────────
+# The server sends no Cache-Control for index.html, so browsers fall back to
+# heuristic caching: they keep a copy for a while and never revalidate. Each
+# SPA path (/, /tickets, /photos ...) is a separate cache entry that ages on
+# its own, and every browser guesses a different lifetime — so after a deploy
+# one browser shows the new site, another shows the old one, and entering via
+# / can differ from entering via /tickets. Always revalidate the HTML; a 304
+# costs nothing.
+#
+# Posters are replaced in place under the same filename, so they must
+# revalidate too — otherwise a swapped poster stays stale for up to a week.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "-poster\.(png|jpe?g|webp)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
 # Belt-and-suspenders: if a monobank_config.php ever lands in the web root, deny it.
 <FilesMatch "^monobank_config.*\.php$">
   Require all denied
