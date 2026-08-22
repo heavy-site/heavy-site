@@ -20,6 +20,18 @@ function heavy_event($id) {
         ['name' => 'Smolyakov',  'time' => '21:00 – 22:00', 'instagram' => 'https://www.instagram.com/smolyakovevgeny/'],
       ],
     ],
+    'insane-rave' => [
+      'name'        => 'Insane Rave',
+      'date'        => 'August 29, 2026',
+      'time'        => '18:00 – 22:00',
+      'venue'       => 'nøx',
+      'address'     => 'Нижньоюрківська 31, Київ',
+      'geo'         => '50.466564192974495,30.499941806080255', // map pin; address shown as-is
+      'description' => 'A new HEAVY series pushing the heaviest end of the spectrum. One night, raw sound, no compromise.',
+      'descriptionUa' => 'Нова серія від HEAVY з найважчим звучанням. Одна ніч, сирий звук, без компромісів.',
+      'priceUah'    => 300,
+      'lineup'      => [],
+    ],
   ];
   if (!isset($E[$id])) return null;
   $ev = $E[$id];

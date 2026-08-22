@@ -391,11 +391,49 @@
       line-height: 0.9;
     }
 
-    .cards-grid {
+    /* Two series side by side: hovering a half enlarges it over the other. */
+    .events-split {
       display: flex;
-      flex-wrap: wrap;
-      gap: 32px;
-      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 840px;
+    }
+    .ev-half {
+      position: relative;
+      flex: 1 1 50%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      padding: 26px 22px 32px;
+      transition: transform 0.5s var(--ease), opacity 0.4s var(--ease), filter 0.4s var(--ease);
+    }
+    .ev-half + .ev-half { border-left: 1px solid var(--line); }
+    .half-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3.6vw, 2.6rem);
+      text-transform: uppercase;
+      line-height: 1;
+      letter-spacing: 0.03em;
+    }
+
+    /* Pointer devices only — on touch both halves stay equal. */
+    @media (hover: hover) and (min-width: 860px) {
+      .ev-half:first-child { transform-origin: left center; }
+      .ev-half:last-child  { transform-origin: right center; }
+      .events-split:hover .ev-half:not(:hover) {
+        opacity: 0.4;
+        filter: grayscale(1) brightness(0.65);
+      }
+      .ev-half:hover { transform: scale(1.12); z-index: 5; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ev-half, .ev-half:hover { transition: none; transform: none; }
+    }
+    @media (max-width: 859px) {
+      .events-split { flex-direction: column; align-items: center; max-width: var(--card-w); }
+      .ev-half + .ev-half { border-left: none; border-top: 1px solid var(--line); }
     }
 
     .event-card {
@@ -477,6 +515,14 @@
     .buy-btn:active { transform: scale(0.97); }
     .buy-btn svg { width: 14px; height: 14px; transition: transform 0.2s var(--ease); }
     .buy-btn:hover svg { transform: translateX(3px); }
+
+    /* Placeholder artwork — drop the real poster in at /insane-poster.png
+       (same filename) and nothing here needs to change. */
+    .card-image--insane {
+      background-image:
+        url('/insane-poster.png'),
+        linear-gradient(200deg, #3a3a3a 0%, #141414 45%, #0D0D0D 100%);
+    }
 
     /* Ended event — not purchasable */
     .event-card.is-ended { cursor: default; }
@@ -1297,38 +1343,82 @@
         <h2 class="chrome-text" data-i18n="headline">Tickets</h2>
       </div>
 
-      <div class="cards-grid">
-        <!-- ══ EVENT CARD (copy to add more) ══ -->
-        <article class="event-card is-ended" aria-label="Alter Ego — Part 2 (event ended)">
-          <div class="card-image" style="background-image: url('/event-poster.png');"></div>
-          <div class="card-gradient"></div>
-          <div class="card-info">
-            <h2 class="card-name">Alter Ego — Part 2</h2>
-            <div class="card-details">
-              <div class="detail-row">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <div><span class="label" data-i18n="lbl-date">Date & Time</span>June 28, 2026</div>
+      <div class="events-split">
+
+        <!-- ══ SERIES — HEAVY ══ -->
+        <div class="ev-half">
+          <h3 class="half-title">Heavy</h3>
+          <article class="event-card is-ended" aria-label="Alter Ego — Part 2 (event ended)">
+            <div class="card-image" style="background-image: url('/event-poster.png');"></div>
+            <div class="card-gradient"></div>
+            <div class="card-info">
+              <h2 class="card-name">Alter Ego — Part 2</h2>
+              <div class="card-details">
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-date">Date & Time</span>June 28, 2026</div>
+                </div>
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-place">Place</span>Gurtok</div>
+                </div>
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M2 9a2 2 0 0 1 0-4V3h20v2a2 2 0 0 1 0 4v2a2 2 0 0 1 0 4v2H2v-2a2 2 0 0 1 0-4V9z"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
+                </div>
               </div>
-              <div class="detail-row">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
-                </svg>
-                <div><span class="label" data-i18n="lbl-place">Place</span>Gurtok</div>
-              </div>
-              <div class="detail-row">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M2 9a2 2 0 0 1 0-4V3h20v2a2 2 0 0 1 0 4v2a2 2 0 0 1 0 4v2H2v-2a2 2 0 0 1 0-4V9z"/>
-                </svg>
-                <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
-              </div>
+              <div class="ended-badge" data-i18n="ev-ended">Event ended</div>
             </div>
-            <div class="ended-badge" data-i18n="ev-ended">Event ended</div>
-          </div>
-        </article>
-        <!-- ══ END EVENT CARD ══ -->
+          </article>
+        </div>
+
+        <!-- ══ SERIES — INSANE ══ -->
+        <div class="ev-half">
+          <h3 class="half-title">Insane</h3>
+          <article class="event-card" data-ticket="insane-rave" tabindex="0" role="button"
+                   aria-label="Insane Rave — buy tickets" onclick="openCheckout('insane-rave')">
+            <div class="card-image card-image--insane"></div>
+            <div class="card-gradient"></div>
+            <div class="card-info">
+              <h2 class="card-name">Insane Rave</h2>
+              <div class="card-details">
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-date">Date & Time</span>August 29, 2026</div>
+                </div>
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-place">Place</span>nøx</div>
+                </div>
+                <div class="detail-row">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M2 9a2 2 0 0 1 0-4V3h20v2a2 2 0 0 1 0 4v2a2 2 0 0 1 0 4v2H2v-2a2 2 0 0 1 0-4V9z"/>
+                  </svg>
+                  <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
+                </div>
+              </div>
+              <button class="buy-btn" onclick="event.stopPropagation(); openCheckout('insane-rave')" data-i18n="buy-btn">
+                Buy Ticket
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
+          </article>
+        </div>
+
       </div>
     </div>
   </section>
@@ -2680,9 +2770,9 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && document.getElementById('checkout').classList.contains('open')) closeCheckout();
     });
-    document.querySelectorAll('.event-card').forEach(card => {
+    document.querySelectorAll('.event-card[data-ticket]').forEach(card => {
       card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCheckout('alter-ego'); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCheckout(card.dataset.ticket); }
       });
     });
 
