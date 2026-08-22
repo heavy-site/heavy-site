@@ -1,6 +1,7 @@
 <?php
 /* create-invoice.php — server creates a Monobank invoice (amount decided here). */
 require __DIR__ . '/_mono.php';
+require __DIR__ . '/_event.php';
 header('Content-Type: application/json; charset=utf-8');
 
 if (!mono_token_ok()) { http_response_code(500); echo json_encode(['error' => 'Payments not configured']); exit; }
@@ -14,6 +15,12 @@ $qty = isset($body['quantity']) ? (int)$body['quantity'] : 1;
 if ($qty < 1 || $qty > 10) $qty = 1;
 $amount = $UNIT_KOP * $qty;                         // never trust a client-sent amount
 
+// Which event is being bought. Unknown ids fall back to the legacy default so
+// a stale cached page cannot create an unattributed order.
+$ticketId = isset($body['ticket']) ? trim((string)$body['ticket']) : '';
+$event    = heavy_event($ticketId);
+if (!$event) { $ticketId = 'alter-ego'; $event = heavy_event($ticketId); }
+
 // Buyer info (stored for the webhook's ticket TODO; validated lightly).
 $email     = isset($body['email'])     ? trim((string)$body['email'])     : '';
 $firstName = isset($body['firstName']) ? trim((string)$body['firstName']) : '';
@@ -26,7 +33,7 @@ $payload = [
   'ccy'    => 980,                                   // UAH
   'merchantPaymInfo' => [
     'reference'   => $reference,
-    'destination' => 'HEAVY — Alter Ego Part 2 x' . $qty,
+    'destination' => 'HEAVY — ' . $event['name'] . ' x' . $qty,
   ],
   'redirectUrl' => 'https://he4vy.com/payment-result',
   'webHookUrl'  => 'https://he4vy.com/api/monobank-webhook.php',
@@ -45,6 +52,7 @@ if (!$resp || empty($resp['invoiceId']) || empty($resp['pageUrl'])) {
 order_save($resp['invoiceId'], [
   'invoiceId' => $resp['invoiceId'],
   'reference' => $reference,
+  'ticket'    => $ticketId,
   'quantity'  => $qty,
   'amount'    => $amount,
   'email'     => $email,
