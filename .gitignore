@@ -15,3 +15,16 @@ booking_requests/
 dj_applications/
 contact_requests/
 preview.html
+
+# Event posters live on the server, not in git.
+# Deploy is `cp -R ./* public_html/`, which overwrites by filename but never
+# deletes. So a poster tracked here silently replaces the artwork uploaded
+# through cPanel on the next deploy — that happened once already. Keeping
+# posters out of the repo means deploys leave them alone, and it keeps tens
+# of megabytes of artwork out of every clone.
+# Upload them in cPanel File Manager to public_html/ as:
+#   event-poster.png     Alter Ego
+#   insane-poster.png    Insane Rave
+*-poster.png
+*-poster.jpg
+*-poster.webp

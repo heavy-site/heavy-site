@@ -69,6 +69,21 @@ Configured in cPanel Zone Editor for `he4vy.com`:
 - `send` TXT SPF `v=spf1 include:amazonses.com ~all`
 - `_dmarc` TXT `v=DMARC1; p=none;`
 
+## Event posters
+
+Posters are **not in git**. They are uploaded straight to `public_html/` through
+cPanel File Manager, named after the event id in `api/_event.php`:
+
+| Event id      | File                 |
+|---------------|----------------------|
+| `alter-ego`   | `event-poster.png`   |
+| `insane-rave` | `insane-poster.png`  |
+
+Deploy is `cp -R`, which overwrites by filename and never deletes — so a poster
+committed to the repo would replace the uploaded artwork on every deploy.
+Keeping them untracked means deploys leave them alone. The cards fall back to a
+gradient if a poster is missing.
+
 ## Deploy
 
 Push to GitHub → pull on cPanel via Git Version Control, or upload via File Manager.
