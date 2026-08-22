@@ -1,9 +1,22 @@
 <?php
-/* Test Resend integration — open in browser:
-   https://he4vy.com/api/test-resend.php?to=your@email.com
-   Shows the full Resend API response for debugging.            */
+/* Test Resend integration — shows the full Resend API response for debugging.
+
+     https://he4vy.com/api/test-resend.php?key=SECRET&to=your@email.com
+
+   The key is the ticket signing secret, same gate as reissue.php. It is not
+   optional: this endpoint sends mail from the verified he4vy.com sender to
+   any address it is handed, so ungated it is an open relay — free spam under
+   our domain, our Resend quota, and our sending reputation.               */
 header('Content-Type: application/json; charset=utf-8');
 require __DIR__ . '/_mono.php';
+require __DIR__ . '/_tickets.php';          // ticket_secret()
+
+$key = isset($_GET['key']) ? (string)$_GET['key'] : '';
+if (!hash_equals(ticket_secret(), $key)) {
+  http_response_code(403);
+  echo json_encode(['error' => 'Forbidden']);
+  exit;
+}
 
 $to = isset($_GET['to']) ? trim($_GET['to']) : '';
 if ($to === '') { echo json_encode(['error' => 'Add ?to=your@email.com']); exit; }
