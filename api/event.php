@@ -11,6 +11,7 @@ if (!$ev) { http_response_code(404); echo json_encode(['error' => 'Unknown event
 echo json_encode([
   'id'            => $ev['id'],
   'name'          => $ev['name'],
+  'poster'        => isset($ev['poster']) ? $ev['poster'] : '',
   'date'          => $ev['date'],
   'time'          => $ev['time'],
   'venue'         => $ev['venue'],
