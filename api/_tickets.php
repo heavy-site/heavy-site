@@ -43,6 +43,52 @@ function ticket_path($id) { return tickets_dir() . '/' . preg_replace('/[^A-Za-z
 function ticket_save($t) { @file_put_contents(ticket_path($t['id']), json_encode($t)); }
 function ticket_load($id) { $p = ticket_path($id); return is_file($p) ? json_decode(file_get_contents($p), true) : null; }
 
+/* ── Check-in accounting ─────────────────────────────────────────
+   A 1-day ticket admits once; a 2-day pass admits once per night. Tickets
+   issued before types existed have no 'uses'/'maxUses', so both are derived
+   from the legacy status/usedAt pair. ─────────────────────────────────── */
+function ticket_max_uses($t) { return max(1, (int)(isset($t['maxUses']) ? $t['maxUses'] : 1)); }
+
+function ticket_uses($t) {
+  if (!empty($t['uses']) && is_array($t['uses'])) return array_values($t['uses']);
+  // Legacy ticket: a single check-in recorded as status + usedAt.
+  if ((isset($t['status']) ? $t['status'] : '') === 'used' && !empty($t['usedAt'])) return [(int)$t['usedAt']];
+  return [];
+}
+
+// Calendar day of a timestamp at the venue, so "one entry per night" is judged
+// in Kyiv time and not in the server's.
+function ticket_day_key($ts) {
+  try {
+    $d = new DateTime('@' . (int)$ts);
+    $d->setTimezone(new DateTimeZone('Europe/Kyiv'));
+    return $d->format('Y-m-d');
+  } catch (\Throwable $e) { return gmdate('Y-m-d', (int)$ts); }
+}
+
+function ticket_used_today($t, $now = null) {
+  $uses = ticket_uses($t);
+  if (!$uses) return false;
+  $today = ticket_day_key($now === null ? time() : $now);
+  foreach ($uses as $u) { if (ticket_day_key($u) === $today) return true; }
+  return false;
+}
+
+function ticket_uses_left($t) { return max(0, ticket_max_uses($t) - count(ticket_uses($t))); }
+
+/* Record one entry. Returns [ok, reason] — reason is '' on success. */
+function ticket_check_in(&$t) {
+  $uses = ticket_uses($t);
+  if (count($uses) >= ticket_max_uses($t)) return [false, 'already_used'];
+  if (ticket_used_today($t))               return [false, 'already_used_today'];
+  $uses[] = time();
+  $t['uses']   = $uses;
+  $t['usedAt'] = end($uses);                       // legacy field: last check-in
+  $t['status'] = count($uses) >= ticket_max_uses($t) ? 'used' : 'valid';
+  ticket_save($t);
+  return [true, ''];
+}
+
 // QR PNG bytes for a verify URL (endroid / GD). Returns binary, or null on failure.
 function make_qr_png($text) {
   try {
@@ -70,6 +116,11 @@ function issue_tickets_and_email(&$order) {
   $ev  = heavy_event($eventId) ?: heavy_event('alter-ego');
   $qty = max(1, (int)(isset($order['quantity']) ? $order['quantity'] : 1));
 
+  // Ticket type decides how many nights one QR is worth. Orders created before
+  // types existed carry no 'type' and resolve to the event's first (1-day) one.
+  $type = heavy_event_type($ev, isset($order['type']) ? (string)$order['type'] : '');
+  $days = max(1, (int)(isset($type['days']) ? $type['days'] : 1));
+
   $made = [];
   for ($i = 1; $i <= $qty; $i++) {
     $tid   = bin2hex(random_bytes(16));
@@ -80,6 +131,12 @@ function issue_tickets_and_email(&$order) {
       'eventId'   => $eventId,
       'email'     => isset($order['email']) ? $order['email'] : '',
       'name'      => trim((isset($order['firstName']) ? $order['firstName'] : '') . ' ' . (isset($order['lastName']) ? $order['lastName'] : '')),
+      'typeId'    => $type['id'],
+      'typeName'  => $type['name'],
+      'typeNameUa'=> isset($type['nameUa']) ? $type['nameUa'] : $type['name'],
+      'days'      => $days,
+      'maxUses'   => $days,          // a 2-day pass scans in on each of the two nights
+      'uses'      => [],             // timestamps of every check-in
       'index' => $i, 'of' => $qty, 'status' => 'valid', 'issuedAt' => time(), 'usedAt' => null,
     ];
     ticket_save($t);
@@ -91,6 +148,7 @@ function issue_tickets_and_email(&$order) {
 }
 
 function send_ticket_email($order, $tickets, $ev) {
+  $days = max(1, (int)(isset($tickets[0]['days']) ? $tickets[0]['days'] : 1));
   if (!defined('RESEND_API_KEY') || RESEND_API_KEY === '' || RESEND_API_KEY === 'REPLACE_WITH_YOUR_RESEND_API_KEY') {
     error_log('[tickets] RESEND_API_KEY not set — tickets stored but NOT emailed: ' . implode(',', array_map(function ($t) { return $t['id']; }, $tickets)));
     return false;
@@ -130,11 +188,21 @@ function send_ticket_email($order, $tickets, $ev) {
   }
 
   $L = $ua
-    ? ['subj' => 'Ваші квитки — ' . $ev['name'], 'hi' => 'Дякуємо за покупку! Ваші квитки нижче.', 'date' => 'Дата', 'time' => 'Час', 'venue' => 'Місце', 'maplbl' => 'Мапа', 'map' => 'Відкрити в картах ↗', 'pdf' => 'PDF-квиток додано до листа — його можна роздрукувати.', 'foot' => 'Покажіть кожен QR на вході. Кожен квиток дійсний один раз.']
-    : ['subj' => 'Your tickets — ' . $ev['name'], 'hi' => 'Thanks for your purchase! Your tickets are below.', 'date' => 'Date', 'time' => 'Time', 'venue' => 'Venue', 'maplbl' => 'Map', 'map' => 'Open in maps ↗', 'pdf' => 'A PDF ticket is attached — you can print it.', 'foot' => 'Show each QR at the entrance. Each ticket is valid once.'];
+    ? ['subj' => 'Ваші квитки — ' . $ev['name'], 'hi' => 'Дякуємо за покупку! Ваші квитки нижче.', 'date' => 'Дата', 'time' => 'Час', 'venue' => 'Місце', 'maplbl' => 'Мапа', 'map' => 'Відкрити в картах ↗', 'typelbl' => 'Квиток', 'pdf' => 'PDF-квиток додано до листа — його можна роздрукувати.',
+       'foot' => $days > 1
+         ? 'Покажіть кожен QR на вході. Кожен квиток дійсний один раз на кожну з ' . $days . ' ночей.'
+         : 'Покажіть кожен QR на вході. Кожен квиток дійсний один раз.']
+    : ['subj' => 'Your tickets — ' . $ev['name'], 'hi' => 'Thanks for your purchase! Your tickets are below.', 'date' => 'Date', 'time' => 'Time', 'venue' => 'Venue', 'maplbl' => 'Map', 'map' => 'Open in maps ↗', 'typelbl' => 'Ticket', 'pdf' => 'A PDF ticket is attached — you can print it.',
+       'foot' => $days > 1
+         ? 'Show each QR at the entrance. Each ticket admits once on each of the ' . $days . ' nights.'
+         : 'Show each QR at the entrance. Each ticket is valid once.'];
 
   $addr = $ev['address'] !== '' ? ' · ' . htmlspecialchars($ev['address']) : '';
-  $rows = '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['date'] . '</td><td>' . htmlspecialchars($ev['date']) . '</td></tr>'
+  $typeLabel = $ua
+    ? (isset($tickets[0]['typeNameUa']) ? $tickets[0]['typeNameUa'] : '')
+    : (isset($tickets[0]['typeName'])   ? $tickets[0]['typeName']   : '');
+  $rows = ($typeLabel !== '' ? '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['typelbl'] . '</td><td>' . htmlspecialchars($typeLabel) . '</td></tr>' : '')
+        . '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['date'] . '</td><td>' . htmlspecialchars($ev['date']) . '</td></tr>'
         . '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['time'] . '</td><td>' . htmlspecialchars($ev['time']) . '</td></tr>'
         . '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['venue'] . '</td><td>' . htmlspecialchars($ev['venue']) . $addr . '</td></tr>'
         . ($ev['mapUrl'] ? '<tr><td style="padding:3px 10px 3px 0;color:#888">' . $L['maplbl'] . '</td><td><a href="' . $ev['mapUrl'] . '">' . $L['map'] . '</a></td></tr>' : '');

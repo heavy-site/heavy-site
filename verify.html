@@ -59,12 +59,21 @@
         if (!d.valid) return show('bad', '✕', 'Invalid', 'This ticket is not genuine.', 'Signature check failed');
         const ev = d.event || {};
         const evLine = [ev.name, ev.date, ev.time, ev.venue].filter(Boolean).join(' · ');
+        // Multi-night passes admit once per night, so spell out what is left.
+        const typeLine = (d.maxUses > 1)
+          ? `${d.type || 'Pass'} · entry ${(d.maxUses - d.usesLeft) + 1} of ${d.maxUses}`
+          : (d.type || '');
         if (d.used) {
           show('warn', '⚠', 'Already used', `${d.name} · ticket ${d.index}/${d.of}`, 'Checked in: ' + new Date(d.usedAt).toLocaleString());
           return;
         }
+        if (d.usedToday) {
+          show('warn', '⚠', 'Used tonight', `${d.name} · ticket ${d.index}/${d.of}`,
+               `Already checked in tonight — ${d.usesLeft} entry left for the next night`);
+          return;
+        }
         // Valid & unused → offer check-in
-        show('ok', '✓', 'Valid', `${d.name} · ticket ${d.index}/${d.of}\n${evLine}`, 'Tap to check in');
+        show('ok', '✓', 'Valid', `${d.name} · ticket ${d.index}/${d.of}\n${[typeLine, evLine].filter(Boolean).join('\n')}`, 'Tap to check in');
         $('meta').style.whiteSpace = 'pre-line';
         const btn = $('action');
         btn.style.display = 'block';
@@ -75,7 +84,8 @@
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ t: token }),
           }).then(x => x.json());
-          if (r.ok) show('ok', '✓', 'Checked in', `${r.name} · ticket ${r.index}/${r.of}`, 'Welcome — entry granted');
+          if (r.ok) show('ok', '✓', 'Checked in', `${r.name} · ticket ${r.index}/${r.of}`, r.usesLeft > 0 ? `Welcome — ${r.usesLeft} more entry for the next night` : 'Welcome — entry granted');
+          else if (r.reason === 'already_used_today') show('warn', '⚠', 'Used tonight', '', 'Already checked in tonight: ' + new Date(r.usedAt).toLocaleString());
           else if (r.reason === 'already_used') show('warn', '⚠', 'Already used', '', 'Checked in: ' + new Date(r.usedAt).toLocaleString());
           else show('bad', '✕', 'Invalid', '', 'Could not check in');
         };

@@ -11,12 +11,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $tid = ticket_verify($token);
   $t = $tid ? ticket_load($tid) : null;
   if (!$t) { echo json_encode(['ok' => false, 'reason' => 'invalid_or_forged']); exit; }
-  if (($t['status'] ?? '') === 'used') {
-    echo json_encode(['ok' => false, 'reason' => 'already_used', 'usedAt' => $t['usedAt'], 'name' => $t['name']]);
+  list($ok, $reason) = ticket_check_in($t);
+  if (!$ok) {
+    echo json_encode([
+      'ok' => false, 'reason' => $reason, 'usedAt' => $t['usedAt'], 'name' => $t['name'],
+      'usesLeft' => ticket_uses_left($t), 'maxUses' => ticket_max_uses($t),
+    ]);
     exit;
   }
-  $t['status'] = 'used'; $t['usedAt'] = time(); ticket_save($t);
-  echo json_encode(['ok' => true, 'name' => $t['name'], 'index' => $t['index'], 'of' => $t['of']]);
+  echo json_encode([
+    'ok' => true, 'name' => $t['name'], 'index' => $t['index'], 'of' => $t['of'],
+    'entry' => count(ticket_uses($t)), 'maxUses' => ticket_max_uses($t),
+    'usesLeft' => ticket_uses_left($t),
+  ]);
   exit;
 }
 
@@ -27,8 +34,11 @@ if (!$t) { echo json_encode(['valid' => false, 'reason' => 'invalid_or_forged'])
 $ev = heavy_event($t['eventId']) ?: [];
 echo json_encode([
   'valid'  => true,
-  'used'   => ($t['status'] ?? '') === 'used',
+  'used'   => ticket_uses_left($t) <= 0,
+  'usedToday' => ticket_used_today($t),
   'usedAt' => $t['usedAt'] ?? null,
   'name'   => $t['name'], 'index' => $t['index'], 'of' => $t['of'],
+  'type'   => $t['typeName'] ?? '', 'days' => (int)($t['days'] ?? 1),
+  'usesLeft' => ticket_uses_left($t), 'maxUses' => ticket_max_uses($t),
   'event'  => ['name' => $ev['name'] ?? '', 'date' => $ev['date'] ?? '', 'time' => $ev['time'] ?? '', 'venue' => $ev['venue'] ?? ''],
 ]);

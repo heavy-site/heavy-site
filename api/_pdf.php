@@ -44,7 +44,9 @@ function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
   // ── Details ──
   $guest = trim((($order['firstName'] ?? '') . ' ' . ($order['lastName'] ?? '')));
   if ($guest === '') $guest = $ticket['name'] ?? '';
+  $days = max(1, (int)($ticket['days'] ?? 1));
   $rows = [
+    ['TYPE',      $ticket['typeName'] ?? ''],
     ['DATE',      $ev['date']    ?? ''],
     ['TIME',      $ev['time']    ?? ''],
     ['VENUE',     $ev['venue']   ?? ''],
@@ -76,12 +78,18 @@ function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
   $pdf->SetLineStyle(['dash' => 0]);
 
   // ── Event poster image (right side) ──
-  $posterPath = __DIR__ . '/../event-poster.png';
+  // Follows the event: hardcoding event-poster.png printed Alter Ego art on
+  // every ticket, whichever event was actually bought.
+  $poster = ltrim((string)($ev['poster'] ?? '/event-poster.png'), '/');
+  $posterPath = __DIR__ . '/../' . basename($poster);
+  if (!is_file($posterPath)) $posterPath = __DIR__ . '/../event-poster.png';
   if (is_file($posterPath)) {
     $imgW = 58;
     $imgH = 100;
     $imgX = $sepX + ((68 - $imgW) / 2);
-    $pdf->Image($posterPath, $imgX, 27, $imgW, $imgH, 'PNG');
+    $ext  = strtoupper(pathinfo($posterPath, PATHINFO_EXTENSION));
+    if ($ext === 'JPG') $ext = 'JPEG';
+    $pdf->Image($posterPath, $imgX, 27, $imgW, $imgH, $ext ?: 'PNG');
   }
 
   // ── Footer ──
@@ -91,7 +99,10 @@ function make_ticket_pdf($ticket, $order, $ev, $qrPng) {
   $pdf->SetFont('dejavusans', '', 7);
   $pdf->SetTextColor(140, 140, 140);
   $pdf->SetXY(10, 128);
-  $pdf->Cell(130, 5, 'Show this ticket (printed or on screen) at the entrance. Each ticket is valid once.', 0, 0, 'L');
+  $footNote = $days > 1
+    ? 'Show this ticket (printed or on screen) at the entrance. Valid once on each of the ' . $days . ' nights.'
+    : 'Show this ticket (printed or on screen) at the entrance. Each ticket is valid once.';
+  $pdf->Cell(130, 5, $footNote, 0, 0, 'L');
 
   return $pdf->Output('ticket.pdf', 'S');
 }
