@@ -6,20 +6,23 @@ header('Content-Type: application/json; charset=utf-8');
 
 if (!mono_token_ok()) { http_response_code(500); echo json_encode(['error' => 'Payments not configured']); exit; }
 
-// ── Amount: SERVER-decided. 30000 kop = 300 UAH per ticket. ──
-$UNIT_KOP = 30000;
-
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) $body = [];
 $qty = isset($body['quantity']) ? (int)$body['quantity'] : 1;
 if ($qty < 1 || $qty > 10) $qty = 1;
-$amount = $UNIT_KOP * $qty;                         // never trust a client-sent amount
 
 // Which event is being bought. Unknown ids fall back to the legacy default so
 // a stale cached page cannot create an unattributed order.
 $ticketId = isset($body['ticket']) ? trim((string)$body['ticket']) : '';
 $event    = heavy_event($ticketId);
 if (!$event) { $ticketId = 'alter-ego'; $event = heavy_event($ticketId); }
+
+// ── Amount: SERVER-decided. The client picks a type id; the price for that
+// type comes from _event.php, so a tampered payload can only ever buy the
+// cheapest type, never a discounted one. ──
+$typeId = isset($body['type']) ? trim((string)$body['type']) : '';
+$type   = heavy_event_type($event, $typeId);
+$amount = ((int)$type['priceUah']) * 100 * $qty;    // never trust a client-sent amount
 
 // Buyer info (stored for the webhook's ticket TODO; validated lightly).
 $email     = isset($body['email'])     ? trim((string)$body['email'])     : '';
@@ -33,7 +36,7 @@ $payload = [
   'ccy'    => 980,                                   // UAH
   'merchantPaymInfo' => [
     'reference'   => $reference,
-    'destination' => 'HEAVY — ' . $event['name'] . ' x' . $qty,
+    'destination' => 'HEAVY — ' . $event['name'] . ' · ' . $type['name'] . ' x' . $qty,
   ],
   'redirectUrl' => 'https://he4vy.com/payment-result',
   'webHookUrl'  => 'https://he4vy.com/api/monobank-webhook.php',
@@ -53,6 +56,9 @@ order_save($resp['invoiceId'], [
   'invoiceId' => $resp['invoiceId'],
   'reference' => $reference,
   'ticket'    => $ticketId,
+  'type'      => $type['id'],
+  'typeName'  => $type['name'],
+  'days'      => isset($type['days']) ? (int)$type['days'] : 1,
   'quantity'  => $qty,
   'amount'    => $amount,
   'email'     => $email,

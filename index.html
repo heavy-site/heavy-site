@@ -783,6 +783,24 @@
     }
 
     .co-form { display: flex; flex-direction: column; gap: 12px; }
+    /* Ticket type chooser — only rendered for events that sell more than one
+       type (e.g. a 1-night ticket next to a 2-night pass). */
+    .co-typerow { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+    .co-types { display: flex; flex-direction: column; gap: 8px; }
+    .co-type {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 14px; background: #0D0D0D; border: 1px solid var(--line);
+      color: var(--fg); cursor: pointer; text-align: left;
+      transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+    }
+    .co-type:hover { border-color: var(--silver); }
+    .co-type.is-active { border-color: var(--fg); background: rgba(242, 242, 242, 0.06); }
+    .co-type-name { display: block; font-family: var(--font); font-size: 1rem; }
+    .co-type-note {
+      display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 0.64rem;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    }
+    .co-type-price { font-family: var(--font-mono); font-size: 0.9rem; white-space: nowrap; }
     .co-qtyrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
     .co-flabel, .co-total span:first-child {
       font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em;
@@ -1400,7 +1418,7 @@
                     <rect x="3" y="4" width="18" height="18" rx="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
-                  <div><span class="label" data-i18n="lbl-date">Date & Time</span>August 29, 2026</div>
+                  <div><span class="label" data-i18n="lbl-date">Date & Time</span>August 29–30, 2026</div>
                 </div>
                 <div class="detail-row">
                   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1412,7 +1430,7 @@
                   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path d="M2 9a2 2 0 0 1 0-4V3h20v2a2 2 0 0 1 0 4v2a2 2 0 0 1 0 4v2H2v-2a2 2 0 0 1 0-4V9z"/>
                   </svg>
-                  <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price">300 UAH</span></div>
+                  <div><span class="label" data-i18n="lbl-price">Price</span><span data-i18n="ticket-price-from">from 300 UAH</span></div>
                 </div>
               </div>
               <button class="buy-btn" onclick="event.stopPropagation(); openCheckout('insane-rave')" data-i18n="buy-btn">
@@ -1598,6 +1616,10 @@
 
         <!-- Purchase form -->
         <form class="co-form" id="co-form" novalidate>
+          <div class="co-typerow" id="co-typerow" style="display:none">
+            <span class="co-flabel" data-i18n="co-type">Ticket</span>
+            <div class="co-types" id="co-types" role="radiogroup" aria-label="Ticket type"></div>
+          </div>
           <div class="co-qtyrow">
             <span class="co-flabel" data-i18n="co-qty">Quantity</span>
             <div class="qty-stepper">
@@ -1859,8 +1881,9 @@
         'eyebrow': 'Upcoming Events', 'headline': 'Tickets',
         'lbl-date': 'Date & Time', 'lbl-place': 'Place', 'lbl-price': 'Price',
         'lbl-time': 'Time', 'lbl-geo': 'Map', 'open-map': 'Open in maps ↗',
-        'ticket-price': '300 UAH', 'buy-btn': 'Buy Ticket', 'ev-ended': 'Event ended',
-        'co-eyebrow': 'Get Tickets', 'co-qty': 'Quantity', 'co-total': 'Total', 'co-pay': 'Pay',
+        'ticket-price': '300 UAH', 'ticket-price-from': 'from 300 UAH', 'cur': 'UAH',
+        'buy-btn': 'Buy Ticket', 'ev-ended': 'Event ended',
+        'co-eyebrow': 'Get Tickets', 'co-type': 'Ticket', 'co-qty': 'Quantity', 'co-total': 'Total', 'co-pay': 'Pay',
         'ph-email': 'Email', 'ph-first': 'First name', 'ph-last': 'Last name',
         'ph-eyebrow': 'Archive', 'ph-headline': 'Photos', 'back': '← Back', 'download': 'Download',
         'bk-eyebrow': 'Roster', 'bk-headline': 'Booking',
@@ -1896,8 +1919,9 @@
         'eyebrow': 'Найближчі події', 'headline': 'Квитки',
         'lbl-date': 'Дата та час', 'lbl-place': 'Місце', 'lbl-price': 'Ціна',
         'lbl-time': 'Час', 'lbl-geo': 'Мапа', 'open-map': 'Відкрити в картах ↗',
-        'ticket-price': '300 грн', 'buy-btn': 'Придбати квиток', 'ev-ended': 'Івент завершено',
-        'co-eyebrow': 'Придбати квитки', 'co-qty': 'Кількість', 'co-total': 'Разом', 'co-pay': 'Сплатити',
+        'ticket-price': '300 грн', 'ticket-price-from': 'від 300 грн', 'cur': 'грн',
+        'buy-btn': 'Придбати квиток', 'ev-ended': 'Івент завершено',
+        'co-eyebrow': 'Придбати квитки', 'co-type': 'Квиток', 'co-qty': 'Кількість', 'co-total': 'Разом', 'co-pay': 'Сплатити',
         'ph-email': 'Email', 'ph-first': "Ім'я", 'ph-last': 'Прізвище',
         'ph-eyebrow': 'Архів', 'ph-headline': 'Фото', 'back': '← Назад', 'download': 'Завантажити',
         'bk-eyebrow': 'Резиденти', 'bk-headline': 'Букінг',
@@ -2653,6 +2677,7 @@
     ════════════════════════════════════════════════════════ */
     let coEvent = null;     // event info from /api/event
     let coQty = 1;
+    let coType = null;      // selected ticket type (1 day / 2 days / …)
 
     function emailValid(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim()); }
     function isPlaceholder(s) { return typeof s === 'string' && s.indexOf('<<') === 0; }
@@ -2666,6 +2691,9 @@
       document.getElementById('co-error').hidden = true;
       document.getElementById('co-form').reset();
       coQty = 1; document.getElementById('co-qty').value = '1';
+      coType = null;
+      document.getElementById('co-typerow').style.display = 'none';
+      document.getElementById('co-types').innerHTML = '';
       m.classList.add('open');
       metaTrack('ViewContent', { content_name: 'ticket:' + ticketId });
 
@@ -2702,6 +2730,8 @@
           lineupEl.style.display = 'none';
         }
 
+        renderTypes(ev);
+
         // quantity bounds + total
         document.getElementById('qty-inc').disabled = false;
         document.getElementById('qty-dec').disabled = true;
@@ -2715,6 +2745,47 @@
       }
     }
     function detailRow(k, v) { return `<div class="co-drow"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
+
+    /* Ticket types. One type = the old single-ticket checkout, so the chooser
+       stays hidden; two or more (1 night / 2 nights) render as a radio group. */
+    function renderTypes(ev) {
+      const row  = document.getElementById('co-typerow');
+      const wrap = document.getElementById('co-types');
+      const types = Array.isArray(ev.types) ? ev.types : [];
+      coType = types.length ? types[0] : null;
+      if (types.length < 2) { wrap.innerHTML = ''; row.style.display = 'none'; return; }
+
+      const cur = i18n[currentLang]['cur'] || 'UAH';
+      wrap.innerHTML = types.map((t, i) => {
+        const name = (currentLang === 'ua' && t.nameUa) ? t.nameUa : t.name;
+        const note = (currentLang === 'ua' && t.noteUa) ? t.noteUa : (t.note || '');
+        return `<button type="button" class="co-type${i === 0 ? ' is-active' : ''}" role="radio"
+                        aria-checked="${i === 0 ? 'true' : 'false'}" data-type="${t.id}">
+          <span><span class="co-type-name">${name}</span>${note ? `<span class="co-type-note">${note}</span>` : ''}</span>
+          <span class="co-type-price">${t.priceUah} ${cur}</span>
+        </button>`;
+      }).join('');
+      wrap.querySelectorAll('.co-type').forEach(btn => {
+        btn.addEventListener('click', () => selectType(btn.dataset.type));
+      });
+      row.style.display = '';
+    }
+    function selectType(id) {
+      if (!coEvent || !Array.isArray(coEvent.types)) return;
+      const t = coEvent.types.find(x => x.id === id);
+      if (!t) return;
+      coType = t;
+      document.querySelectorAll('#co-types .co-type').forEach(btn => {
+        const on = btn.dataset.type === id;
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      updateTotal();
+    }
+    function typePrice() {
+      if (coType && coType.priceUah != null) return coType.priceUah;
+      return (coEvent && coEvent.priceUah != null) ? coEvent.priceUah : 0;
+    }
     function closeCheckout() { document.getElementById('checkout').classList.remove('open'); }
 
     function changeQty(d) {
@@ -2726,8 +2797,8 @@
       updateTotal();
     }
     function updateTotal() {
-      const price = coEvent && coEvent.priceUah != null ? coEvent.priceUah : 0;
-      document.getElementById('co-total-val').textContent = (price * coQty) + ' UAH';
+      const cur = i18n[currentLang]['cur'] || 'UAH';
+      document.getElementById('co-total-val').textContent = (typePrice() * coQty) + ' ' + cur;
     }
     function validateCheckout() {
       const email = document.getElementById('co-email');
@@ -2765,13 +2836,13 @@
 
       metaTrack('InitiateCheckout', {
         content_name: coEvent.name, currency: 'UAH',
-        value: (coEvent.priceUah || 0) * coQty, num_items: coQty,
+        value: typePrice() * coQty, num_items: coQty,
       });
 
       payBtn.disabled = true;
       payBtn.querySelector('span').textContent = (currentLang === 'ua' ? 'Зачекайте…' : 'Please wait…');
       try {
-        const payload = { ticket: coEvent.ticketId, quantity: coQty, email, firstName, lastName, lang: currentLang };
+        const payload = { ticket: coEvent.ticketId, type: coType ? coType.id : '', quantity: coQty, email, firstName, lastName, lang: currentLang };
         console.log('[pay] POST /api/create-invoice', payload);            // STEP 2: request sent
         const r = await fetch('/api/create-invoice', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },

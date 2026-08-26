@@ -21,5 +21,6 @@ echo json_encode([
   'mapUrl'        => $ev['mapUrl'],
   'priceUah'      => $ev['priceUah'],
   'maxQty'        => $ev['maxQty'],
+  'types'         => heavy_event_types($ev),
   'lineup'        => isset($ev['lineup']) ? $ev['lineup'] : [],
 ]);
