@@ -15,7 +15,7 @@ if ($qty < 1 || $qty > 10) $qty = 1;
 // a stale cached page cannot create an unattributed order.
 $ticketId = isset($body['ticket']) ? trim((string)$body['ticket']) : '';
 $event    = heavy_event($ticketId);
-if (!$event) { $ticketId = 'alter-ego'; $event = heavy_event($ticketId); }
+if (!$event) { $ticketId = 'heavy'; $event = heavy_event($ticketId); }
 
 // ── Amount: SERVER-decided. The client picks a type id; the price for that
 // type comes from _event.php, so a tampered payload can only ever buy the
