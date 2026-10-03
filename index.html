@@ -2679,7 +2679,7 @@
           const lineupLabel = currentLang === 'ua' ? 'Артисти' : 'Artists';
           lineupEl.innerHTML = `<div class="co-lineup-title">${lineupLabel}</div>` +
             ev.lineup.map(a => `<div class="co-lineup-row">
-              <a href="${a.instagram}" target="_blank" rel="noopener">${a.name}</a>
+              ${a.instagram ? `<a href="${a.instagram}" target="_blank" rel="noopener">${a.name}</a>` : `<span>${a.name}</span>`}
               <span class="co-lineup-time">${a.time}</span>
             </div>`).join('');
           lineupEl.style.display = 'block';
