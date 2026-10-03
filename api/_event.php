@@ -3,6 +3,19 @@
    ticket email (api/_tickets.php). Keep in sync with the site. */
 function heavy_event($id) {
   $E = [
+    'heavy' => [
+      'name'        => 'Heavy',
+      'poster'      => '/nox-card.jpg',
+      'date'        => 'October 24, 2026',
+      'time'        => '',
+      'venue'       => 'nøx',
+      'address'     => 'Нижньоюрківська 31, Київ',
+      'geo'         => '50.466564192974495,30.499941806080255',
+      'description' => '',
+      'descriptionUa' => '',
+      'priceUah'    => 300,
+      'lineup'      => [],
+    ],
     'alter-ego' => [
       'name'        => 'Alter Ego — Part 2',
       'poster'      => '/event-poster.png',
