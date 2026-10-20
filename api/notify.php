@@ -18,6 +18,8 @@ if (!defined('ORDERS_KEY')) define('ORDERS_KEY', '_8I_d1d8HrmVVs9u');
 // Which campaign this is (used to name the dedup log — change it to re-send
 // a *different* announcement later without being blocked by this one's log).
 define('NOTIFY_CAMPAIGN', 'heavy-cancel-2026-10');
+// Only notify buyers of THIS event — never people who bought a past event.
+define('NOTIFY_EVENT', 'heavy');
 // Replies land here (buyers reply to request refunds). Override in config.
 if (!defined('NOTIFY_REPLYTO')) define('NOTIFY_REPLYTO', 'mad.cvlt666@gmail.com');
 
@@ -34,6 +36,7 @@ foreach (glob(MONO_DATA_DIR . '/*.json') ?: [] as $f) {
   if ($f === $sentLog) continue;
   $o = json_decode(@file_get_contents($f), true);
   if (!is_array($o) || empty($o['paid']) || empty($o['email'])) continue;
+  if (($o['ticket'] ?? '') !== NOTIFY_EVENT) continue;   // this event only
   $email = strtolower(trim($o['email']));
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) continue;
   if (!isset($recips[$email])) {
@@ -121,7 +124,7 @@ $previewLang = !empty($pending) ? $pending[0]['lang'] : 'ua';
   .warn{color:#ffd166}
 </style></head><body>
   <h1>HEAVY — Notify buyers</h1>
-  <div class="muted">Campaign: <?= esc(NOTIFY_CAMPAIGN) ?> · from <?= esc(defined('MAIL_FROM') ? MAIL_FROM : 'he4vy.com') ?> · reply-to <?= esc(NOTIFY_REPLYTO) ?></div>
+  <div class="muted">Event: <strong><?= esc(NOTIFY_EVENT) ?></strong> · Campaign: <?= esc(NOTIFY_CAMPAIGN) ?> · from <?= esc(defined('MAIL_FROM') ? MAIL_FROM : 'he4vy.com') ?> · reply-to <?= esc(NOTIFY_REPLYTO) ?></div>
 
   <div class="bar">
     <div><div class="n"><?= count($recips) ?></div><div class="l">Paid buyers</div></div>
