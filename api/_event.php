@@ -5,6 +5,7 @@ function heavy_event($id) {
   $E = [
     'heavy' => [
       'name'        => 'Heavy',
+      'salesOpen'   => false,   // event postponed — sales closed until a new date
       'poster'      => '/nox-card.jpg',
       'date'        => 'October 24, 2026',
       'time'        => '',

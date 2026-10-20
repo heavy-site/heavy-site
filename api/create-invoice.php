@@ -17,6 +17,13 @@ $ticketId = isset($body['ticket']) ? trim((string)$body['ticket']) : '';
 $event    = heavy_event($ticketId);
 if (!$event) { $ticketId = 'heavy'; $event = heavy_event($ticketId); }
 
+// Sales can be explicitly closed (e.g. an event postponed with no new date).
+if (isset($event['salesOpen']) && !$event['salesOpen']) {
+  http_response_code(403);
+  echo json_encode(['error' => 'Ticket sales are closed']);
+  exit;
+}
+
 // ── Amount: SERVER-decided. The client picks a type id; the price for that
 // type comes from _event.php, so a tampered payload can only ever buy the
 // cheapest type, never a discounted one. ──
