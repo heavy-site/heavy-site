@@ -29,8 +29,15 @@ foreach (glob(MONO_DATA_DIR . '/*.json') ?: [] as $f) {
 // Newest first.
 usort($orders, function ($a, $b) { return (int)($b['ts'] ?? 0) <=> (int)($a['ts'] ?? 0); });
 
+// Optional filter by event (ticket id). Distinct events for the filter UI.
+$eventFilter = isset($_GET['event']) ? trim((string)$_GET['event']) : '';
+$events = [];
+foreach ($orders as $o) { $t = (string)($o['ticket'] ?? ''); if ($t !== '') $events[$t] = true; }
+$events = array_keys($events);
+
 $paidCount = 0; $paidTickets = 0; $revenue = 0;
 foreach ($orders as $o) {
+  if ($eventFilter !== '' && (string)($o['ticket'] ?? '') !== $eventFilter) continue;
   if (!empty($o['paid'])) {
     $paidCount++;
     $paidTickets += (int)($o['quantity'] ?? 1);
@@ -74,7 +81,17 @@ header('Cache-Control: no-store');
 </head>
 <body>
   <h1>HEAVY — Orders</h1>
-  <div class="sub"><?= h($showAll ? 'All orders' : 'Paid orders') ?> · generated <?= h(gmdate('Y-m-d H:i')) ?> UTC</div>
+  <div class="sub"><?= h($showAll ? 'All orders' : 'Paid orders') ?><?= $eventFilter !== '' ? ' · event: ' . h($eventFilter) : '' ?> · generated <?= h(gmdate('Y-m-d H:i')) ?> UTC</div>
+
+  <?php if (count($events) > 1): ?>
+  <div class="toggle" style="margin-bottom:6px">
+    Event:
+    <a href="?key=<?= h($key) ?><?= $showAll ? '&all=1' : '' ?>"<?= $eventFilter === '' ? ' style="color:#7CFC9B"' : '' ?>>All</a>
+    <?php foreach ($events as $ev): ?>
+      · <a href="?key=<?= h($key) ?>&event=<?= h(urlencode($ev)) ?><?= $showAll ? '&all=1' : '' ?>"<?= $eventFilter === $ev ? ' style="color:#7CFC9B"' : '' ?>><?= h($ev) ?></a>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
 
   <div class="stats">
     <div class="stat"><div class="n"><?= $paidCount ?></div><div class="l">Paid orders</div></div>
@@ -83,10 +100,11 @@ header('Cache-Control: no-store');
   </div>
 
   <div class="toggle">
+    <?php $evq = $eventFilter !== '' ? '&event=' . urlencode($eventFilter) : ''; ?>
     <?php if ($showAll): ?>
-      <a href="?key=<?= h($key) ?>">▸ Show paid only</a>
+      <a href="?key=<?= h($key) . $evq ?>">▸ Show paid only</a>
     <?php else: ?>
-      <a href="?key=<?= h($key) ?>&all=1">▸ Show all orders (incl. unpaid)</a>
+      <a href="?key=<?= h($key) ?>&all=1<?= $evq ?>">▸ Show all orders (incl. unpaid)</a>
     <?php endif; ?>
   </div>
 
@@ -100,6 +118,7 @@ header('Cache-Control: no-store');
     foreach ($orders as $o):
       $paid = !empty($o['paid']);
       if (!$showAll && !$paid) continue;
+      if ($eventFilter !== '' && (string)($o['ticket'] ?? '') !== $eventFilter) continue;
       $shown++;
       $name = trim(($o['firstName'] ?? '') . ' ' . ($o['lastName'] ?? ''));
       $amount = (int)($o['amount'] ?? 0);
