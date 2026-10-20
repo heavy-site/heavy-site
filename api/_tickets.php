@@ -139,6 +139,13 @@ function issue_tickets_and_email(&$order) {
       'uses'      => [],             // timestamps of every check-in
       'index' => $i, 'of' => $qty, 'status' => 'valid', 'issuedAt' => time(), 'usedAt' => null,
     ];
+    // Optional label override (e.g. free/guest-list tickets) — never set by the
+    // paid flow, so the standard type still shows for purchases.
+    if (!empty($order['typeNameOverride'])) {
+      $t['typeName']   = $order['typeNameOverride'];
+      $t['typeNameUa'] = isset($order['typeNameUaOverride']) ? $order['typeNameUaOverride'] : $order['typeNameOverride'];
+    }
+    if (!empty($order['free'])) $t['free'] = true;
     ticket_save($t);
     $made[] = $t;
   }

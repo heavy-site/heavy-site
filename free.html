@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>HEAVY — Free Ticket</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#0D0D0D; --fg:#F2F2F2; --muted:#8C8C8C; --line:rgba(140,140,140,0.22);
+      --font-display:'Anton','Arial Narrow',Impact,sans-serif;
+      --font:'Saira Condensed','Arial Narrow',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --ease:cubic-bezier(0.22,1,0.36,1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:300;
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
+    .card{width:100%;max-width:460px;border:1px solid var(--line);padding:clamp(26px,6vw,48px);animation:in .5s var(--ease) both}
+    @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+    h1{font-family:var(--font-display);font-size:clamp(2rem,9vw,3rem);text-transform:uppercase;line-height:.95;margin-bottom:10px}
+    .ev-meta{font-size:1rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:8px}
+    .remaining{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:24px}
+    .msg{font-size:1.1rem;line-height:1.45;color:rgba(255,255,255,.82);margin:18px 0}
+    .mark{font-family:var(--font-mono);font-size:2.4rem;margin-bottom:6px}
+    form{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+    .row{display:flex;gap:12px}
+    .row>*{flex:1}
+    input{width:100%;box-sizing:border-box;padding:13px 16px;background:rgba(255,255,255,.04);
+      border:1px solid var(--line);color:var(--fg);font-family:var(--font);font-size:1rem;outline:none}
+    input::placeholder{color:var(--muted)}
+    input:focus{border-color:var(--fg)}
+    button.submit{margin-top:6px;padding:16px;background:var(--fg);color:#0D0D0D;border:1px solid var(--fg);
+      font-family:var(--font-mono);font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;
+      transition:background .2s var(--ease),color .2s var(--ease)}
+    button.submit:hover{background:#0D0D0D;color:var(--fg)}
+    button.submit:disabled{opacity:.5;cursor:default}
+    .form-msg{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.04em;min-height:1.1em;margin-top:4px}
+    .form-msg.ok{color:#7CFC9B}
+    .form-msg.err{color:#ff6b6b}
+    .spinner{width:30px;height:30px;border:2px solid var(--line);border-top-color:var(--fg);border-radius:50%;
+      margin:10px auto;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <p class="eyebrow">HEAVY · Free Ticket</p>
+    <div class="spinner" id="spinner"></div>
+    <div id="content" class="hidden"></div>
+  </div>
+
+  <script>
+    // Code comes from /free/<code> (pretty) or ?code=<code>.
+    var m = location.pathname.match(/^\/free\/([A-Za-z0-9_-]+)\/?$/);
+    var code = (m && m[1]) || new URLSearchParams(location.search).get('code') || '';
+    var lang = (navigator.language || 'en').toLowerCase().startsWith('uk') ? 'ua' : 'en';
+
+    var T = {
+      en: {
+        eyebrow:'Free ticket', get:'Get free ticket', sending:'Sending…',
+        first:'First name', last:'Last name', email:'Email',
+        intro:'Claim your free ticket — we will email it with a QR to show at the door.',
+        left:function(n){return n+' free ticket'+(n===1?'':'s')+' left';},
+        ok:'Ticket sent! Check your email (and spam).',
+        invalid:'This link is not valid.',
+        expired:'The free-ticket giveaway has ended.',
+        soldout:'All free tickets have been claimed.',
+        claimed:'This email already got a free ticket.',
+        errEmail:'Please enter a valid email.',
+        errReq:'Please fill in all fields.',
+        errSend:'Something went wrong. Please try again.'
+      },
+      ua: {
+        eyebrow:'Безкоштовний квиток', get:'Отримати квиток', sending:'Надсилаємо…',
+        first:"Ім'я", last:'Прізвище', email:'Email',
+        intro:'Забери безкоштовний квиток — надішлемо його на пошту з QR для входу.',
+        left:function(n){return 'залишилось '+n+' квитк'+(n===1?'':(n>=2&&n<=4?'и':'ів'));},
+        ok:'Квиток надіслано! Перевір пошту (і спам).',
+        invalid:'Посилання недійсне.',
+        expired:'Роздача квитків завершена.',
+        soldout:'Усі безкоштовні квитки вже розібрали.',
+        claimed:'На цей email вже отримано квиток.',
+        errEmail:'Введи коректний email.',
+        errReq:'Заповни всі поля.',
+        errSend:'Щось пішло не так. Спробуй ще раз.'
+      }
+    }[lang];
+
+    var $ = function(id){return document.getElementById(id);};
+    function show(html){ $('spinner').style.display='none'; var c=$('content'); c.innerHTML=html; c.classList.remove('hidden'); }
+    function stateMsg(mark, title, text){ return '<div class="mark">'+mark+'</div><h1>'+title+'</h1><p class="msg">'+text+'</p>'; }
+
+    function renderForm(ev, remaining){
+      show(
+        '<h1>'+ev.name+'</h1>'+
+        '<p class="ev-meta">'+ev.date+(ev.venue?' · '+ev.venue:'')+'</p>'+
+        '<p class="remaining">'+T.left(remaining)+'</p>'+
+        '<p class="msg" style="font-size:.95rem;margin:0 0 14px">'+T.intro+'</p>'+
+        '<form id="f">'+
+          '<div class="row"><input name="firstName" placeholder="'+T.first+'" required />'+
+          '<input name="lastName" placeholder="'+T.last+'" required /></div>'+
+          '<input name="email" type="email" placeholder="'+T.email+'" required />'+
+          '<button class="submit" type="submit">'+T.get+'</button>'+
+          '<div class="form-msg" id="fmsg"></div>'+
+        '</form>'
+      );
+      $('f').addEventListener('submit', claim);
+    }
+
+    async function claim(e){
+      e.preventDefault();
+      var f = e.target, btn = f.querySelector('.submit'), msg = $('fmsg');
+      msg.textContent=''; msg.className='form-msg';
+      var data = { code:code, lang:lang,
+        firstName:f.firstName.value.trim(), lastName:f.lastName.value.trim(), email:f.email.value.trim() };
+      if(!data.firstName||!data.lastName||!data.email){ msg.textContent=T.errReq; msg.className='form-msg err'; return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)){ msg.textContent=T.errEmail; msg.className='form-msg err'; return; }
+      btn.disabled=true; var old=btn.textContent; btn.textContent=T.sending;
+      try{
+        var r = await fetch('/api/free-ticket', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+        var d = await r.json();
+        if(r.ok && d.ok){ show(stateMsg('✓', 'HEAVY', T.ok)); return; }
+        var map={expired:T.expired,soldout:T.soldout,claimed:T.claimed,invalid:T.invalid};
+        msg.textContent = map[d.status] || T.errSend; msg.className='form-msg err';
+      }catch(_){ msg.textContent=T.errSend; msg.className='form-msg err'; }
+      btn.disabled=false; btn.textContent=old;
+    }
+
+    (async function(){
+      if(!code){ show(stateMsg('✕', 'HEAVY', T.invalid)); return; }
+      try{
+        var d = await fetch('/api/free-ticket?code='+encodeURIComponent(code)).then(function(r){return r.json();});
+        if(d.status==='open'){ renderForm(d.event, d.remaining); }
+        else if(d.status==='expired'){ show(stateMsg('✕','HEAVY',T.expired)); }
+        else if(d.status==='soldout'){ show(stateMsg('✕','HEAVY',T.soldout)); }
+        else { show(stateMsg('✕','HEAVY',T.invalid)); }
+      }catch(_){ show(stateMsg('✕','HEAVY',T.errSend)); }
+    })();
+  </script>
+</body>
+</html>
