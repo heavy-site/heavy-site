@@ -5,6 +5,7 @@ function heavy_event($id) {
   $E = [
     'heavy' => [
       'name'        => 'Heavy',
+      'salesOpen'   => false,   // event postponed — sales closed until a new date
       'poster'      => '/nox-card.jpg',
       'date'        => 'October 24, 2026',
       'time'        => '',
@@ -14,7 +15,11 @@ function heavy_event($id) {
       'description' => '',
       'descriptionUa' => '',
       'priceUah'    => 300,
-      'lineup'      => [],
+      'lineup'      => [
+        ['name' => 'Mad Cult b2b Artem', 'time' => '18:00 – 20:00', 'instagram' => 'https://www.instagram.com/mad_cvlt/'],
+        ['name' => 'Toxic Killer',       'time' => '20:00 – 21:00', 'instagram' => ''],
+        ['name' => 'Smolyakov',          'time' => '21:00 – 22:00', 'instagram' => 'https://www.instagram.com/smolyakovevgeny/'],
+      ],
     ],
     'alter-ego' => [
       'name'        => 'Alter Ego — Part 2',
