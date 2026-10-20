@@ -22,9 +22,6 @@
   # Event info for the checkout modal
   RewriteRule ^api/event/?$            /api/event.php            [L,QSA]
 
-  # Hidden free-ticket giveaway (link-only)
-  RewriteRule ^api/free-ticket/?$      /api/free-ticket.php      [L,QSA]
-
   # Monobank acquiring (PHP backend)
   RewriteRule ^api/create-invoice/?$   /api/create-invoice.php   [L,QSA]
   RewriteRule ^api/check-status/?$     /api/check-status.php     [L,QSA]
@@ -46,8 +43,6 @@
   # Pretty paths
   RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
   RewriteRule ^verify/?$               /verify.html              [L,QSA]
-  RewriteRule ^free/?$                 /free.html                [L,QSA]
-  RewriteRule ^free/[A-Za-z0-9_-]+/?$  /free.html                [L,QSA]
 </IfModule>
 
 # ── Cache policy ────────────────────────────────────────────────────────────
