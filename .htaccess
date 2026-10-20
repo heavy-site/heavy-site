@@ -25,6 +25,9 @@
   # Protected buyer list (read-only, key-gated)
   RewriteRule ^api/orders/?$           /api/orders.php           [L,QSA]
 
+  # Protected buyer announcement / notify (key-gated)
+  RewriteRule ^api/notify/?$           /api/notify.php           [L,QSA]
+
   # Monobank acquiring (PHP backend)
   RewriteRule ^api/create-invoice/?$   /api/create-invoice.php   [L,QSA]
   RewriteRule ^api/check-status/?$     /api/check-status.php     [L,QSA]
