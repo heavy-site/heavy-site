@@ -14,7 +14,7 @@ function heavy_event($id) {
       'geo'         => '50.466564192974495,30.499941806080255',
       'description' => '',
       'descriptionUa' => '',
-      'priceUah'    => 300,
+      'priceUah'    => 350,
       'lineup'      => [
         ['name' => 'Mad Cult',     'time' => '16:00 – 17:00', 'instagram' => 'https://www.instagram.com/mad_cvlt/'],
         ['name' => 'ISKITTT',      'time' => '17:00 – 18:00', 'instagram' => ''],
