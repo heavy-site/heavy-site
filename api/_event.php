@@ -5,10 +5,10 @@ function heavy_event($id) {
   $E = [
     'heavy' => [
       'name'        => 'Heavy',
-      'salesOpen'   => false,   // event postponed — sales closed until a new date
+      'salesOpen'   => true,
       'poster'      => '/nox-card.jpg',
-      'date'        => 'October 24, 2026',
-      'time'        => '',
+      'date'        => 'November 28, 2026',
+      'time'        => '16:00 – 22:00',
       'venue'       => 'nøx',
       'address'     => 'Нижньоюрківська 31, Київ',
       'geo'         => '50.466564192974495,30.499941806080255',
@@ -16,9 +16,12 @@ function heavy_event($id) {
       'descriptionUa' => '',
       'priceUah'    => 300,
       'lineup'      => [
-        ['name' => 'Mad Cult b2b Artem', 'time' => '18:00 – 20:00', 'instagram' => 'https://www.instagram.com/mad_cvlt/'],
-        ['name' => 'Toxic Killer',       'time' => '20:00 – 21:00', 'instagram' => ''],
-        ['name' => 'Smolyakov',          'time' => '21:00 – 22:00', 'instagram' => 'https://www.instagram.com/smolyakovevgeny/'],
+        ['name' => 'Mad Cult',     'time' => '16:00 – 17:00', 'instagram' => 'https://www.instagram.com/mad_cvlt/'],
+        ['name' => 'ISKITTT',      'time' => '17:00 – 18:00', 'instagram' => ''],
+        ['name' => 'Artem',        'time' => '18:00 – 19:00', 'instagram' => 'https://www.instagram.com/internetkiddd_/'],
+        ['name' => 'Toxic Killxr', 'time' => '19:00 – 20:00', 'instagram' => ''],
+        ['name' => 'Smolyakov',    'time' => '20:00 – 21:00', 'instagram' => 'https://www.instagram.com/smolyakovevgeny/'],
+        ['name' => 'Vitali Tash',  'time' => '21:00 – 22:00', 'instagram' => ''],
       ],
     ],
     'alter-ego' => [
