@@ -17,7 +17,7 @@ function heavy_event($id) {
       'priceUah'    => 300,
       'lineup'      => [
         ['name' => 'Mad Cult',     'time' => '16:00 – 17:00', 'instagram' => 'https://www.instagram.com/mad_cvlt/'],
-        ['name' => 'ISITTT',       'time' => '17:00 – 18:00', 'instagram' => ''],
+        ['name' => 'ISKITTT',      'time' => '17:00 – 18:00', 'instagram' => ''],
         ['name' => 'Artem',        'time' => '18:00 – 19:00', 'instagram' => 'https://www.instagram.com/internetkiddd_/'],
         ['name' => 'Toxic Killxr', 'time' => '19:00 – 20:00', 'instagram' => ''],
         ['name' => 'Smolyakov',    'time' => '20:00 – 21:00', 'instagram' => 'https://www.instagram.com/smolyakovevgeny/'],
