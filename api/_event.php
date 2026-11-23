@@ -7,7 +7,7 @@ function heavy_event($id) {
       'name'        => 'Heavy',
       'salesOpen'   => true,
       'poster'      => '/nox-card.jpg',
-      'date'        => 'November 28, 2026',
+      'date'        => 'November 27, 2026',
       'time'        => '16:00 – 22:00',
       'venue'       => 'nøx',
       'address'     => 'Нижньоюрківська 31, Київ',
