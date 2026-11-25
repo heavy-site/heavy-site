@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>HEAVY — Door scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Saira+Condensed:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#0D0D0D;--fg:#F2F2F2;--muted:#8C8C8C;--line:rgba(140,140,140,0.22);
+      --ok:#1db954;--bad:#e0245e;--warn:#e6a817;
+      --font-display:'Anton',Impact,sans-serif;--font:'Saira Condensed',sans-serif;--font-mono:'Space Mono',monospace;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--fg);font-family:var(--font);min-height:100vh;
+      display:flex;flex-direction:column;align-items:center;padding:16px}
+    .top{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .eyebrow{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+    #reader{width:100%;max-width:520px;border:1px solid var(--line);overflow:hidden;background:#000;min-height:120px}
+    #reader video{display:block;width:100%!important;height:auto!important}
+    .result{width:100%;max-width:520px;margin-top:14px;border:1px solid var(--line);padding:22px;text-align:center;display:none}
+    .result.show{display:block;animation:in .25s ease both}
+    @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .mark{font-size:3rem;line-height:1;margin-bottom:6px}
+    .result h1{font-family:var(--font-display);font-size:2.2rem;text-transform:uppercase;line-height:.95;margin-bottom:10px}
+    .result .name{font-size:1.3rem;margin-bottom:4px}
+    .result .meta{font-family:var(--font-mono);font-size:.74rem;color:var(--muted);letter-spacing:.06em;line-height:1.6}
+    .ok h1{color:var(--ok)} .bad h1{color:var(--bad)} .warn h1{color:var(--warn)}
+    button{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;
+      width:100%;padding:16px;margin-top:16px;border:1px solid var(--fg);background:var(--fg);color:#0D0D0D;cursor:pointer}
+    button.ghost{background:none;color:var(--fg)}
+    button:disabled{opacity:.4}
+    .hint{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-top:14px;text-align:center;max-width:520px}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <span class="eyebrow">HEAVY · Door scanner</span>
+    <span class="eyebrow" id="count"></span>
+  </div>
+  <div id="reader"></div>
+  <button id="start">Start camera</button>
+  <div class="result" id="result"></div>
+  <p class="hint" id="hint">Allow camera access, then point at a ticket QR.</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    let scanner = null, running = false, busy = false, lastText = '', lastAt = 0, checkedIn = 0;
+
+    function tokenFrom(text){
+      try { const u = new URL(text); const t = u.searchParams.get('t'); if (t) return t; } catch(_){}
+      const m = String(text).match(/[?&]t=([^&]+)/); if (m) return decodeURIComponent(m[1]);
+      return String(text).trim();
+    }
+
+    function render(cls, mark, title, name, meta, actionLabel, onAction){
+      const r = $('result');
+      r.className = 'result show ' + (cls||'');
+      r.innerHTML = '<div class="mark">'+mark+'</div><h1>'+title+'</h1>'
+        + (name ? '<div class="name">'+name+'</div>' : '')
+        + (meta ? '<div class="meta">'+meta+'</div>' : '');
+      if (actionLabel){
+        const b = document.createElement('button'); b.textContent = actionLabel; b.onclick = onAction; r.appendChild(b);
+      }
+      const nx = document.createElement('button'); nx.className='ghost'; nx.textContent='Scan next'; nx.onclick=resume;
+      r.appendChild(nx);
+    }
+
+    async function handle(text){
+      busy = true;
+      const token = tokenFrom(text);
+      try {
+        const d = await fetch('/api/verify-ticket?t=' + encodeURIComponent(token)).then(r=>r.json());
+        if (!d.valid){ render('bad','✕','Invalid','', 'Signature check failed'); return; }
+        const ev = d.event || {};
+        const meta = [ev.name, ev.date].filter(Boolean).join(' · ')
+          + (d.of>1 ? '<br>ticket '+d.index+' / '+d.of : '')
+          + (d.type ? '<br>'+d.type : '')
+          + (d.maxUses>1 ? '<br>uses left: '+d.usesLeft+' / '+d.maxUses : '');
+        if (d.usesLeft <= 0){
+          render('bad','✕','Already used', d.name, meta + (d.usedAt ? '<br>used: '+new Date(d.usedAt*1000).toLocaleString() : ''));
+        } else if (d.usedToday){
+          render('warn','●','Used today', d.name, meta);
+        } else {
+          render('ok','✓','Valid', d.name, meta, 'Check in', () => checkIn(token));
+        }
+      } catch(_){
+        render('bad','✕','Error','', 'Network error — try again');
+      }
+    }
+
+    async function checkIn(token){
+      try {
+        const d = await fetch('/api/verify-ticket/use', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({t:token})}).then(r=>r.json());
+        if (d.ok){
+          checkedIn++; $('count').textContent = 'checked in: ' + checkedIn;
+          const left = d.maxUses>1 ? '<br>uses left: '+d.usesLeft+' / '+d.maxUses : '';
+          render('ok','✓','Checked in', d.name, (d.of>1?'ticket '+d.index+' / '+d.of:'') + left);
+        } else {
+          render('bad','✕', d.reason==='already_used_today'?'Used today':'Already used', d.name||'', 'uses left: '+(d.usesLeft??0));
+        }
+      } catch(_){ render('bad','✕','Error','', 'Could not check in — try again'); }
+    }
+
+    function resume(){
+      $('result').className = 'result';
+      busy = false; lastText = '';
+      if (scanner){
+        try { scanner.resume(); running = true; }   // un-pause the live scan
+        catch(_){ startScan(); }
+      } else { startScan(); }
+    }
+
+    async function onDecode(text){
+      const now = Date.now();
+      if (busy) return;
+      if (text === lastText && now - lastAt < 2500) return;
+      lastText = text; lastAt = now;
+      try { await scanner.pause(true); running = false; } catch(_){}
+      handle(text);
+    }
+
+    async function startScan(){
+      try {
+        if (!scanner) scanner = new Html5Qrcode('reader', { verbose:false });
+        await scanner.start({ facingMode:'environment' }, { fps:10, qrbox:{width:250,height:250} }, onDecode, ()=>{});
+        running = true; $('start').style.display='none'; $('hint').textContent='Point at a ticket QR.';
+      } catch(e){
+        $('hint').textContent = 'Camera unavailable: ' + (e && e.message ? e.message : e) + '. Use HTTPS and allow camera access.';
+      }
+    }
+
+    $('start').onclick = startScan;
+  </script>
+</body>
+</html>
