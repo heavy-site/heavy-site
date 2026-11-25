@@ -25,6 +25,9 @@
   # Protected buyer list (read-only, key-gated)
   RewriteRule ^api/orders/?$           /api/orders.php           [L,QSA]
 
+  # Admin: issue a free ticket (key-gated)
+  RewriteRule ^api/free-admin/?$       /api/free-admin.php       [L,QSA]
+
   # Protected buyer announcement / notify (key-gated)
   RewriteRule ^api/notify/?$           /api/notify.php           [L,QSA]
 
@@ -49,6 +52,7 @@
   # Pretty paths
   RewriteRule ^payment-result/?$       /payment-result.html      [L,QSA]
   RewriteRule ^verify/?$               /verify.html              [L,QSA]
+  RewriteRule ^scan/?$                 /scan.html                [L,QSA]
 </IfModule>
 
 # ── Cache policy ────────────────────────────────────────────────────────────
